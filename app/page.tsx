@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
@@ -29,10 +29,23 @@ const productFeatures = [
   { title: 'Automatización de procesos', copy: 'Respuestas, recordatorios y seguimiento que funcionan sin intervención manual.' },
 ]
 
-const productVideos = [
-  { id: 'web-que-atrae', video: '/videos/webqueatraevideo.mp4', caption: 'La web pública' },
-  { id: 'panel-admin', video: '/videos/paneladminquecontrolavideo.mp4', caption: 'El panel de gestión' },
+/**
+ * Aquí había dos vídeos de stock rotulados «La web pública» y «El panel de
+ * gestión». Se leían como trabajo nuestro sin serlo, y ya no hacen falta:
+ * Salonio está en producción y la sección de abajo enseña el producto real.
+ */
+
+// Lo que hace Salonio de verdad, no lo que promete el folleto.
+const salonioFeatures = [
+  { title: 'Reservas sin llamadas', copy: 'El cliente elige servicio, profesional y hueco libre. La agenda del salón se actualiza sola.' },
+  { title: 'Cobro de la señal', copy: 'Stripe Connect: el salón cobra la cita o una señal, y el dinero va directo a su banco sin pasar por nosotros.' },
+  { title: 'Recordatorios automáticos', copy: 'Email y notificación push antes de la cita. Menos ausencias sin que nadie tenga que avisar a mano.' },
+  { title: 'Fidelización por sellos', copy: 'Programa de sellos con canje atómico: el barbero ve en la agenda que al siguiente le toca premio.' },
+  { title: 'Instalable en el móvil', copy: 'PWA: la web del salón se instala como app en Android y iPhone, sin pasar por ninguna tienda.' },
+  { title: 'Dominio propio', copy: 'Cada salón puede conectar su dominio. Sin marketplace ni comisiones por cita delante de su marca.' },
 ]
+
+const salonioStack = ['Next.js', 'Supabase', 'PostgreSQL + RLS', 'Stripe Connect', 'Vercel', 'Web Push']
 
 const nichos = [
   'Restaurantes', 'Salones', 'Clínicas',
@@ -79,37 +92,6 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null)
   const contactRef = useRef<HTMLDivElement>(null)
   const trayRef = useRef<HTMLDivElement>(null)
-  const videoRefs = useRef<HTMLVideoElement[]>([])
-
-  // ========== VIDEO AUTOPLAY EN DESKTOP ==========
-  useEffect(() => {
-    const isTouchDevice =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches
-
-    if (isTouchDevice) return
-
-    const videos = videoRefs.current.filter(Boolean)
-    if (videos.length === 0) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const video = entry.target as HTMLVideoElement
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
-            video.play().catch(() => {})
-          } else {
-            video.pause()
-          }
-        })
-      },
-      { threshold: [0, 0.3, 0.5, 1], rootMargin: '-10% 0px' }
-    )
-
-    videos.forEach((video) => observer.observe(video))
-    return () => observer.disconnect()
-  }, [])
 
   // ========== MESA DE TALLER: piezas arrastrables ==========
   useEffect(() => {
@@ -269,17 +251,6 @@ export default function Home() {
               profesional y autonomía completa en la gestión diaria.
             </p>
 
-            <div className="grid gap-6 md:grid-cols-2 mb-10">
-              {productVideos.map((item, index) => (
-                <figure key={item.id}>
-                  <VideoCard video={item.video} poster={`/images/${item.id}-poster.jpg`} onVideoRef={(el) => { videoRefs.current[index] = el }} />
-                  <figcaption className="font-mono text-xs text-[var(--ink-soft)] mt-3 text-center">
-                    {item.caption}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-
             <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
               {productFeatures.map((feature) => (
                 <div key={feature.title}>
@@ -297,6 +268,108 @@ export default function Home() {
                 </span>
               ))}
             </div>
+          </div>
+        </NeumorfSection>
+
+        {/* ========== PROYECTOS: SALONIO ========== */}
+        <NeumorfSection id="proyectos" className="max-w-6xl">
+          <div className="reveal text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+              Proyectos
+            </h2>
+            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
+              Producto propio en producción. Lo que describimos arriba,
+              funcionando y con clientes reales usándolo cada día.
+            </p>
+          </div>
+
+          <div className="reveal ng-card p-6 md:p-10">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <span className="ng-badge text-emerald-600 dark:text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                En producción
+              </span>
+              <span className="ng-badge text-[var(--ink-soft)]">Producto propio</span>
+              <span className="ng-badge text-[var(--ink-soft)]">Peluquerías y barberías</span>
+            </div>
+
+            <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
+              Salonio — reservas para peluquerías
+            </h3>
+            <p className="text-[var(--ink-soft)] max-w-2xl mb-10">
+              Cada salón tiene su propia web de reservas, su panel de gestión y
+              su agenda. Los clientes reservan solos a cualquier hora; el dueño
+              deja de coger el teléfono a mitad de un corte. Sin comisiones por
+              cita y sin un marketplace delante de su marca.
+            </p>
+
+            {/* Capturas reales del producto, no maquetas */}
+            {/* El móvil se acota a 240px: a su ancho natural salía el doble de
+                alto que la captura de escritorio y dejaba un hueco muerto. */}
+            <div className="grid gap-6 md:grid-cols-[2fr_1fr] items-center justify-items-center mb-10">
+              <figure>
+                <div className="ng-video-card overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/salonio-web.webp"
+                    alt="Página de inicio de Salonio en escritorio"
+                    width={1600}
+                    height={1000}
+                    loading="lazy"
+                    className="w-full h-auto"
+                  />
+                </div>
+                <figcaption className="font-mono text-xs text-[var(--ink-soft)] mt-3 text-center">
+                  La web pública
+                </figcaption>
+              </figure>
+              <figure className="w-full max-w-[240px]">
+                <div className="ng-video-card overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/salonio-movil.webp"
+                    alt="Salonio en un móvil, instalable como app"
+                    width={600}
+                    height={1299}
+                    loading="lazy"
+                    className="w-full h-auto"
+                  />
+                </div>
+                <figcaption className="font-mono text-xs text-[var(--ink-soft)] mt-3 text-center">
+                  Instalable en el móvil
+                </figcaption>
+              </figure>
+            </div>
+
+            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+              {salonioFeatures.map((feature) => (
+                <div key={feature.title}>
+                  <h4 className="font-semibold text-sm mb-1">{feature.title}</h4>
+                  <p className="text-sm text-[var(--ink-soft)]">{feature.copy}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mb-8">
+              <span className="text-sm text-[var(--ink-soft)] mr-1">Construido con:</span>
+              {salonioStack.map((tech) => (
+                <span key={tech} className="ng-raised px-4 py-2 text-sm cursor-default">
+                  {tech}
+                </span>
+              ))}
+            </div>
+
+            <a
+              href="https://reservas.neumorstudio.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ng-btn-primary inline-flex"
+            >
+              Ver Salonio
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
           </div>
         </NeumorfSection>
 
@@ -454,78 +527,6 @@ export default function Home() {
           </NeumorfSection>
         </footer>
       </main>
-    </div>
-  )
-}
-
-// ========== VIDEO CARD ==========
-interface VideoCardProps {
-  video: string
-  poster: string
-  onVideoRef: (el: HTMLVideoElement) => void
-}
-
-function VideoCard({ video, poster, onVideoRef }: VideoCardProps) {
-  const [isMobile, setIsMobile] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const isTouchDevice =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches
-    // La detección táctil solo existe en cliente; un render extra al montar es inevitable
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMobile(isTouchDevice)
-  }, [])
-
-  const handlePlayClick = () => {
-    const el = videoRef.current
-    if (!el) return
-    if (isPlaying) {
-      el.pause()
-    } else {
-      el.play().catch(() => {})
-    }
-  }
-
-  const setRefs = (el: HTMLVideoElement | null) => {
-    videoRef.current = el
-    if (el) onVideoRef(el)
-  }
-
-  return (
-    <div className="ng-video-card group relative">
-      <div className="aspect-video w-full overflow-hidden relative">
-        <video
-          ref={setRefs}
-          src={video}
-          muted={!isMobile}
-          loop
-          playsInline
-          controls={isMobile}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-          preload="metadata"
-          poster={poster}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
-
-        {isMobile && !isPlaying && (
-          <button
-            onClick={handlePlayClick}
-            className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-opacity"
-            aria-label="Reproducir video"
-          >
-            <div className="w-16 h-16 rounded-full bg-white/90 dark:bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/50">
-              <svg className="w-6 h-6 text-slate-800 dark:text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </div>
-          </button>
-        )}
-      </div>
     </div>
   )
 }
