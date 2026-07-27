@@ -137,25 +137,19 @@
   box-shadow: 0 8px 24px var(--ambient);
 }
 
-/* Logotipo blandito: letras-tecla + destello */
+/* Logotipo blandito: letras-tecla */
 .ng-wordmark {
   /* Sombras del relieve, por tema */
   --wm-hi: rgba(255, 255, 255, 0.9);
   --wm-lo: rgba(22, 26, 34, 0.25);
-  --wm-sheen: rgba(255, 255, 255, 0.45);
   display: inline-block;
-  overflow: hidden;
   /* Las letras son inline-block: sin esto el logotipo puede partirse en dos líneas */
   white-space: nowrap;
-  /* Aire para que la letra pulsada y el destello no se recorten */
-  padding: 0.15em 0.35em;
-  margin: -0.15em -0.35em;
   transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .dark .ng-wordmark {
   --wm-hi: rgba(200, 195, 240, 0.22);
   --wm-lo: rgba(0, 0, 0, 0.65);
-  --wm-sheen: rgba(255, 255, 255, 0.1);
 }
 .ng-wordmark:active {
   transform: scale(0.93);
@@ -179,21 +173,6 @@
   text-shadow:
     1px 1px 1px var(--wm-hi),
     -1px -1px 1px var(--wm-lo);
-}
-
-/* Destello que barre el logotipo al hacer hover */
-.ng-wordmark::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 35%, var(--wm-sheen) 50%, transparent 65%);
-  transform: translateX(-130%) skewX(-20deg);
-  pointer-events: none;
-}
-.ng-wordmark:hover::after {
-  transform: translateX(130%) skewX(-20deg);
-  /* Transición solo en hover: al salir vuelve al instante, fuera de vista */
-  transition: transform 0.6s ease;
 }
 
 /* ---------- Vídeo ---------- */
@@ -307,10 +286,6 @@
   .ng-wordmark,
   .ng-wordmark span,
   .toy-piece {
-    transition: none;
-  }
-  /* Sin transición el destello salta de lado a lado fuera de vista: efecto desactivado */
-  .ng-wordmark:hover::after {
     transition: none;
   }
 }
