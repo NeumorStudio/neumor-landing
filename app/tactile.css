@@ -166,13 +166,16 @@
     text-shadow 90ms ease,
     color 90ms ease;
 }
-.ng-wordmark span:hover {
-  transform: translateY(2px) scale(0.97);
-  color: var(--ink-soft);
-  /* Sombras invertidas: de relieve a hundido */
-  text-shadow:
-    1px 1px 1px var(--wm-hi),
-    -1px -1px 1px var(--wm-lo);
+/* Solo con puntero real: en táctil el hover se queda pegado tras el toque */
+@media (hover: hover) {
+  .ng-wordmark span:hover {
+    transform: translateY(2px) scale(0.97);
+    color: var(--ink-soft);
+    /* Sombras invertidas: de relieve a hundido */
+    text-shadow:
+      1px 1px 1px var(--wm-hi),
+      -1px -1px 1px var(--wm-lo);
+  }
 }
 
 /* ---------- Vídeo ---------- */
