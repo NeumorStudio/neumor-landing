@@ -8,6 +8,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Draggable } from 'gsap/Draggable'
 import { InertiaPlugin } from 'gsap/InertiaPlugin'
+import Matter from 'matter-js'
 
 gsap.registerPlugin(ScrollTrigger, Draggable, InertiaPlugin)
 
@@ -93,20 +94,110 @@ export default function Home() {
   const contactRef = useRef<HTMLDivElement>(null)
   const trayRef = useRef<HTMLDivElement>(null)
 
-  // ========== MESA DE TALLER: piezas arrastrables ==========
+  // ========== MESA DE TALLER: al primer toque las piezas cobran físicas ==========
   useEffect(() => {
-    if (!trayRef.current) return
+    const tray = trayRef.current
+    if (!tray) return
 
+    // Arrastre suave inicial; muere en cuanto entran las físicas
     const draggables = Draggable.create('.toy-piece', {
       type: 'x,y',
-      bounds: trayRef.current,
+      bounds: tray,
       inertia: true,
       edgeResistance: 0.7,
       onPress() { this.target.classList.add('dragging') },
       onRelease() { this.target.classList.remove('dragging') },
     })
 
-    return () => draggables.forEach((d) => d.kill())
+    let engine: Matter.Engine | null = null
+    let raf = 0
+    let releaseOutside: (() => void) | null = null
+
+    const activatePhysics = () => {
+      draggables.forEach((d) => d.kill())
+
+      const trayRect = tray.getBoundingClientRect()
+      const w = trayRect.width
+      const h = trayRect.height
+      engine = Matter.Engine.create({ enableSleeping: true })
+      engine.gravity.y = 1.2
+
+      // ponytail: paredes fijadas al tamaño actual; un resize con físicas activas las desajusta
+      const grosor = 200
+      Matter.Composite.add(engine.world, [
+        Matter.Bodies.rectangle(w / 2, h + grosor / 2, w * 2, grosor, { isStatic: true }),
+        Matter.Bodies.rectangle(w / 2, -grosor / 2, w * 2, grosor, { isStatic: true }),
+        Matter.Bodies.rectangle(-grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
+        Matter.Bodies.rectangle(w + grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
+      ])
+
+      const items = Array.from(tray.querySelectorAll<HTMLElement>('.toy-piece')).map((el) => {
+        const r = el.getBoundingClientRect()
+        const cx = r.left - trayRect.left + r.width / 2
+        const cy = r.top - trayRect.top + r.height / 2
+        // Centro de la pieza en el flujo, sin el transform que dejó el arrastre
+        const baseX = cx - (Number(gsap.getProperty(el, 'x')) || 0)
+        const baseY = cy - (Number(gsap.getProperty(el, 'y')) || 0)
+        const body = Matter.Bodies.rectangle(cx, cy, r.width, r.height, {
+          chamfer: { radius: 13 },
+          restitution: 0.25,
+          friction: 0.6,
+          frictionAir: 0.02,
+        })
+        Matter.Composite.add(engine!.world, body)
+        return { el, body, baseX, baseY }
+      })
+
+      // Agarrar, lanzar y apilar con el puntero
+      const mouse = Matter.Mouse.create(tray)
+      const mouseConstraint = Matter.MouseConstraint.create(engine, {
+        mouse,
+        constraint: { stiffness: 0.2, damping: 0.1 },
+      })
+      Matter.Composite.add(engine.world, mouseConstraint)
+
+      Matter.Events.on(mouseConstraint, 'startdrag', (e) => {
+        const body = (e as unknown as { body?: Matter.Body }).body
+        items.find((i) => i.body === body)?.el.classList.add('dragging')
+      })
+      Matter.Events.on(mouseConstraint, 'enddrag', () => {
+        items.forEach((i) => i.el.classList.remove('dragging'))
+      })
+
+      // Si el puntero se suelta fuera de la bandeja, la pieza quedaría agarrada
+      releaseOutside = () => { mouse.button = -1 }
+      window.addEventListener('pointerup', releaseOutside)
+
+      let last = performance.now()
+      const step = (now: number) => {
+        Matter.Engine.update(engine!, Math.min(now - last, 33))
+        last = now
+        for (const { el, body, baseX, baseY } of items) {
+          el.style.transform =
+            `translate(${body.position.x - baseX}px, ${body.position.y - baseY}px) rotate(${body.angle}rad)`
+        }
+        raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
+    }
+
+    const onFirstTouch = (e: PointerEvent) => {
+      if (!(e.target as Element).closest('.toy-piece')) return
+      tray.removeEventListener('pointerdown', onFirstTouch, true)
+      activatePhysics()
+    }
+    // Con reduced motion se quedan en arrastre simple, sin caída
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      tray.addEventListener('pointerdown', onFirstTouch, true)
+    }
+
+    return () => {
+      tray.removeEventListener('pointerdown', onFirstTouch, true)
+      if (releaseOutside) window.removeEventListener('pointerup', releaseOutside)
+      cancelAnimationFrame(raf)
+      if (engine) Matter.Engine.clear(engine)
+      draggables.forEach((d) => d.kill())
+    }
   }, [])
 
   // ========== ENTRADAS Y REVEALS ==========
@@ -191,7 +282,7 @@ export default function Home() {
               de ingeniería en cada entrega.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
               <button
                 onClick={() => document.querySelector('#construimos')?.scrollIntoView({ behavior: 'smooth' })}
                 className="hero-cta ng-btn-primary"
