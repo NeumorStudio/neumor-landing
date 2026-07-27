@@ -62,9 +62,14 @@ export function Navbar() {
         {/* Logo */}
         <Link
           href="/"
+          aria-label="NeumorStudio"
           className="ng-wordmark font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
-          NeumorStudio
+          {"NeumorStudio".split("").map((letter, i) => (
+            <span key={i} aria-hidden="true">
+              {letter}
+            </span>
+          ))}
         </Link>
 
         {/* Desktop Navigation */}
