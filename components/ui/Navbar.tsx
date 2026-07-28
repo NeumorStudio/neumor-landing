@@ -66,33 +66,34 @@ export function Navbar() {
           className="ng-wordmark font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
           {/* Símbolo: trazo-n con punto azul */}
+          {/* Geometría medida píxel a píxel sobre el diseño original */}
           <svg
             className="w-[1.4em] h-[1.4em] mr-1.5"
-            viewBox="18 21 66 66"
+            viewBox="85 140 322 322"
             aria-hidden="true"
           >
             <defs>
               <mask id="wm-hollow">
-                <rect x="18" y="21" width="66" height="66" fill="white" />
+                <rect x="85" y="140" width="322" height="322" fill="white" />
                 <path
-                  d="M30 30.5 V77 M30 56 C30 36 39 29 52 29 C65 29 72 38 72 52 V66"
+                  d="M152.5 194.5 V406.5 M152.5 290 C152.5 225 205 194.5 282 194.5 C350 194.5 372 235 372 300 V408"
                   fill="none"
                   stroke="black"
-                  strokeWidth="8"
+                  strokeWidth="37"
                   strokeLinecap="round"
                 />
               </mask>
             </defs>
             <path
-              d="M30 30.5 V77 M30 56 C30 36 39 29 52 29 C65 29 72 38 72 52 V66"
+              d="M152.5 194.5 V406.5 M152.5 290 C152.5 225 205 194.5 282 194.5 C350 194.5 372 235 372 300 V408"
               fill="none"
               stroke="currentColor"
-              strokeWidth="13"
+              strokeWidth="67"
               strokeLinecap="round"
               mask="url(#wm-hollow)"
             />
-            {/* El punto se encaja en la boca del trazo, como en el original */}
-            <circle cx="72" cy="73" r="6" fill="var(--accent)" />
+            {/* El punto vive dentro de la boca del tubo */}
+            <circle cx="392" cy="429" r="11.75" fill="var(--accent)" />
           </svg>
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
