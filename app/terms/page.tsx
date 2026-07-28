@@ -42,7 +42,7 @@ export default function TermsPage() {
 
             <div className="pt-4 border-t border-slate-300 dark:border-slate-700">
               <h2 className="text-lg font-semibold mb-1">Contacto</h2>
-              <p className="text-sm">soporte@neumorstudio.com</p>
+              <p className="text-sm">info@neumorstudio.com</p>
             </div>
           </NeumorfCard>
         </NeumorfSection>

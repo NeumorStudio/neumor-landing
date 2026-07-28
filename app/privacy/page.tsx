@@ -48,7 +48,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="pt-4 border-t border-slate-300 dark:border-slate-700">
-              <p className="text-sm">Si tienes dudas, puedes contactarnos en: soporte@neumorstudio.com</p>
+              <p className="text-sm">Si tienes dudas, puedes contactarnos en: info@neumorstudio.com</p>
             </div>
           </NeumorfCard>
         </NeumorfSection>
