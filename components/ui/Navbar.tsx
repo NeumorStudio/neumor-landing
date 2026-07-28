@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "@/components/theme/ThemeContext";
 
 const navLinks = [
@@ -66,35 +67,14 @@ export function Navbar() {
           className="ng-wordmark font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
           {/* Símbolo: trazo-n con punto azul */}
-          {/* Geometría medida píxel a píxel sobre el diseño original */}
-          <svg
-            className="w-[1.4em] h-[1.4em] mr-1.5"
-            viewBox="85 140 322 322"
-            aria-hidden="true"
-          >
-            <defs>
-              <mask id="wm-hollow">
-                <rect x="85" y="140" width="322" height="322" fill="white" />
-                <path
-                  d="M152.5 194.5 V406.5 M152.5 290 C152.5 225 205 194.5 282 194.5 C350 194.5 372 235 372 300 V408"
-                  fill="none"
-                  stroke="black"
-                  strokeWidth="37"
-                  strokeLinecap="round"
-                />
-              </mask>
-            </defs>
-            <path
-              d="M152.5 194.5 V406.5 M152.5 290 C152.5 225 205 194.5 282 194.5 C350 194.5 372 235 372 300 V408"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="67"
-              strokeLinecap="round"
-              mask="url(#wm-hollow)"
-            />
-            {/* El punto vive dentro de la boca del tubo */}
-            <circle cx="392" cy="429" r="11.75" fill="var(--accent)" />
-          </svg>
+          <Image
+            src="/images/logo-mark.png"
+            alt=""
+            width={64}
+            height={64}
+            priority
+            className="w-[1.5em] h-[1.5em] mr-2 rounded-[0.34em]"
+          />
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
               {letter}
