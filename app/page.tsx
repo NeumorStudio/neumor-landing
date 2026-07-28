@@ -578,7 +578,21 @@ export default function Home() {
 
         {/* ========== FOOTER ========== */}
         <footer className="border-t border-[var(--edge-border)]">
-          <NeumorfSection className="py-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[var(--ink-soft)]">
+          <NeumorfSection className="py-8 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
+            {/* Wordmark: neumor▪ / STUDIO */}
+            <div className="flex flex-col items-center md:items-start gap-1">
+              <span className="font-display text-2xl font-bold tracking-tight leading-none text-[var(--foreground)]">
+                neumor
+                <span
+                  className="inline-block w-[0.16em] h-[0.16em] ml-[0.08em] rounded-[1px] bg-[var(--accent)]"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="text-[0.6rem] font-light uppercase tracking-[0.45em] ml-[0.2em]">
+                Studio
+              </span>
+            </div>
+
             <span>&copy; {new Date().getFullYear()} NeumorStudio — Desarrollo de software</span>
             <div className="flex gap-3">
               <a
