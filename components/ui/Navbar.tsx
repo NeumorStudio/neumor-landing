@@ -67,19 +67,32 @@ export function Navbar() {
         >
           {/* Símbolo: trazo-n con punto azul */}
           <svg
-            className="w-[1.2em] h-[1.2em] mr-1.5"
-            viewBox="20 20 68 68"
+            className="w-[1.4em] h-[1.4em] mr-1.5"
+            viewBox="18 21 66 66"
             aria-hidden="true"
           >
-            {/* Trazo sólido: el contorno hueco se ensucia por debajo de ~48px */}
+            <defs>
+              <mask id="wm-hollow">
+                <rect x="18" y="21" width="66" height="66" fill="white" />
+                <path
+                  d="M30 30.5 V77 M30 56 C30 36 39 29 52 29 C65 29 72 38 72 52 V66"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                />
+              </mask>
+            </defs>
             <path
-              d="M31 77 V45 Q31 31 47 31 H53 Q69 31 69 45 V60"
+              d="M30 30.5 V77 M30 56 C30 36 39 29 52 29 C65 29 72 38 72 52 V66"
               fill="none"
               stroke="currentColor"
               strokeWidth="13"
               strokeLinecap="round"
+              mask="url(#wm-hollow)"
             />
-            <circle cx="69" cy="77" r="6.5" fill="var(--accent)" />
+            {/* El punto se encaja en la boca del trazo, como en el original */}
+            <circle cx="72" cy="73" r="6" fill="var(--accent)" />
           </svg>
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
