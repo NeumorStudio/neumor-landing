@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootDir = join(__dirname, '..')
 
-const SOURCE_IMAGE = join(rootDir, 'public/images/logoneumor.jpeg')
+const SOURCE_IMAGE = join(rootDir, 'app/icon.svg')
 const OUTPUT_DIR = join(rootDir, 'public/icons')
 
 const ICONS = [

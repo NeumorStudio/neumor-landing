@@ -65,6 +65,34 @@ export function Navbar() {
           aria-label="NeumorStudio"
           className="ng-wordmark font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
+          {/* Símbolo: trazo-n con punto azul */}
+          <svg
+            className="w-[1.2em] h-[1.2em] mr-1.5"
+            viewBox="20 20 68 68"
+            aria-hidden="true"
+          >
+            <defs>
+              <mask id="wm-hollow">
+                <rect x="20" y="20" width="68" height="68" fill="white" />
+                <path
+                  d="M31 77 V45 Q31 31 47 31 H53 Q69 31 69 45 V60"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                />
+              </mask>
+            </defs>
+            <path
+              d="M31 77 V45 Q31 31 47 31 H53 Q69 31 69 45 V60"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="13"
+              strokeLinecap="round"
+              mask="url(#wm-hollow)"
+            />
+            <circle cx="69" cy="77" r="6" fill="var(--accent)" />
+          </svg>
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
               {letter}
