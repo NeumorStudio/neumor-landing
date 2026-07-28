@@ -10,10 +10,10 @@
  * sale mal quien escribe se entera en el acto.
  *
  * El reply-to apunta a quien rellena el formulario, así que responder desde
- * Gmail le llega directo sin copiar el correo a mano.
+ * el buzón le llega directo sin copiar el correo a mano.
  */
 
-const DESTINO = 'neumorstudio@gmail.com'
+const DESTINO = 'info@neumorstudio.com'
 const REMITENTE = 'Web NeumorStudio <web@neumorstudio.com>'
 
 export type LeadData = {
