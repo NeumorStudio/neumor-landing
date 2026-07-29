@@ -117,7 +117,14 @@
     0 0 0 3px var(--accent-glow);
 }
 
-/* ---------- Navbar ---------- */
+/* ---------- Navbar ----------
+   La barra no tiene fondo: es un contenedor transparente. El cristal vive en
+   cada control, que flota suelto sobre el contenido. Es el patrón de iOS 26:
+   quitar la banda sólida y dejar cápsulas independientes.
+
+   Consecuencia importante: como no hay banda que proteja el texto, cada
+   cápsula tiene que ser legible por sí misma. De ahí que lleven su propio
+   cristal y su contorno. */
 .ng-navbar {
   position: fixed;
   top: 0;
@@ -125,16 +132,119 @@
   right: 0;
   z-index: 50;
   padding: 0.9rem 0;
-  background: color-mix(in srgb, var(--background) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
-.ng-navbar.scrolled {
-  border-bottom-color: var(--edge-border);
-  box-shadow: 0 8px 24px var(--ambient);
+/* Cápsula de cada elemento del menú.
+   Lleva el mismo material que el resto del sistema pero con menos desenfoque:
+   son piezas pequeñas, y aquí el cristal es para separar del fondo, no para
+   lucirse. */
+.nav-item {
+  position: relative;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--lq-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(var(--lq-sat));
+  backdrop-filter: blur(12px) saturate(var(--lq-sat));
+  box-shadow:
+    inset 0 1px 0 var(--lq-bisel-hi),
+    inset 0 -1px 0 var(--lq-bisel-lo),
+    0 2px 8px var(--lq-sombra);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+
+/* Contorno de luz continuo: de brillante a tenue y vuelta, sin llegar nunca a
+   transparente. Con tramos transparentes el borde se veía partido justo en los
+   lados rectos de la cápsula. */
+.nav-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--lq-ang),
+    var(--lq-spec) 0deg,
+    var(--lq-spec-tenue) 85deg,
+    var(--lq-spec) 175deg,
+    var(--lq-spec-tenue) 265deg,
+    var(--lq-spec) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.75;
+  transition: opacity 0.18s ease;
+}
+
+/* Al pasar por encima se hunde un punto, como una tecla —el guiño neumórfico
+   dentro de una pieza de cristal— y la luz empieza a girar por el contorno. */
+.nav-item:hover {
+  color: var(--foreground);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 2px var(--lq-bisel-lo),
+    inset 0 -1px 0 var(--lq-bisel-hi),
+    0 1px 4px var(--lq-sombra);
+}
+
+.nav-item:hover::after {
+  opacity: 1;
+  animation: girar-luz 3s linear infinite;
+}
+
+/* La cápsula de la sección que estás viendo: hundida, como una tecla pulsada,
+   y con el contorno al máximo. */
+.nav-item.activa {
+  color: var(--foreground);
+  box-shadow:
+    inset 0 2px 4px var(--lq-bisel-lo),
+    inset 0 -1px 0 var(--lq-bisel-hi),
+    0 1px 3px var(--lq-sombra);
+}
+
+.nav-item.activa::after { opacity: 1; }
+
+.nav-item.activa .punto-activo {
+  position: absolute;
+  left: 50%;
+  bottom: 0.28rem;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item:hover::after { animation: none; }
+  .nav-item:hover { transform: none; }
+}
+
+@media (max-width: 768px) {
+  .nav-item {
+    -webkit-backdrop-filter: blur(8px) saturate(var(--lq-sat));
+    backdrop-filter: blur(8px) saturate(var(--lq-sat));
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .nav-item {
+    background: var(--lq-solido);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .nav-item::after { display: none; }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav-item { background: var(--lq-solido); }
 }
 
 /* Logotipo blandito: letras-tecla */

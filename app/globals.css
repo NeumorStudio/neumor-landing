@@ -28,6 +28,27 @@
 
   /* Ámbar — reservado para el laboratorio */
   --amber: #d97706;
+
+  /* ===== Liquid Glass =====
+     El cristal se reserva a lo que flota: la barra y el hero. Las superficies
+     con texto largo siguen siendo neumorfismo opaco, que es lo que se lee.
+     `--lq-blur` se baja en móvil más abajo: el desenfoque escala con el área y
+     es lo único caro de todo esto. */
+  --lq-bg: rgba(255, 255, 255, 0.38);
+  --lq-blur: 26px;
+  --lq-sat: 1.9;
+  --lq-spec: rgba(255, 255, 255, 0.95);
+  /* El punto bajo del reflejo. Nunca transparente del todo: si el degradado
+     llega a cero, el contorno desaparece a tramos y la cápsula se ve rota por
+     los lados. Continuo y con variación de intensidad, no con huecos. */
+  --lq-spec-tenue: rgba(255, 255, 255, 0.32);
+  --lq-bisel-hi: rgba(255, 255, 255, 0.8);
+  --lq-bisel-lo: rgba(20, 25, 40, 0.12);
+  --lq-brillo: rgba(255, 255, 255, 0.4);
+  --lq-sombra: rgba(22, 26, 34, 0.12);
+  /* Respaldo opaco para cuando no hay cristal (ver @supports y
+     prefers-reduced-transparency al final del archivo) */
+  --lq-solido: rgba(244, 246, 251, 0.94);
 }
 
 .dark {
@@ -48,6 +69,20 @@
   --accent-glow: rgba(92, 119, 255, 0.25);
 
   --amber: #fbbf24;
+
+  /* En oscuro el bisel se apaga y la saturación baja: los mismos valores que
+     en claro dan un cristal turbio y sucio sobre fondo oscuro. No es el claro
+     invertido. */
+  --lq-bg: rgba(28, 33, 45, 0.42);
+  --lq-blur: 28px;
+  --lq-sat: 1.4;
+  --lq-spec: rgba(255, 255, 255, 0.7);
+  --lq-spec-tenue: rgba(255, 255, 255, 0.1);
+  --lq-bisel-hi: rgba(255, 255, 255, 0.14);
+  --lq-bisel-lo: rgba(0, 0, 0, 0.4);
+  --lq-brillo: rgba(255, 255, 255, 0.14);
+  --lq-sombra: rgba(0, 0, 0, 0.45);
+  --lq-solido: rgba(26, 30, 40, 0.95);
 }
 
 body {
@@ -56,6 +91,298 @@ body {
   font-family: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
   transition: background-color 0.3s, color 0.3s;
   position: relative;
+}
+
+/* ===================== LIQUID GLASS =====================
+   Tres capas que juntas dan el material de Apple sin refracción real:
+     1. el cristal      → difusión + saturación (backdrop-filter)
+     2. el bisel        → dos sombras interiores que fingen el grosor
+     3. el reflejo      → borde de 1px con degradado cónico recortado con mask
+   Más un brillo opcional que sigue al puntero (.lq-vivo).
+
+   Lo que NO hace: refractar los bordes. Eso necesitaría filtros SVG de
+   desplazamiento, que en móvil son inviables. Se prefiere no tenerlo a
+   tenerlo a 20 fps. */
+.lq {
+  position: relative;
+  background: var(--lq-bg);
+  -webkit-backdrop-filter: blur(var(--lq-blur)) saturate(var(--lq-sat));
+  backdrop-filter: blur(var(--lq-blur)) saturate(var(--lq-sat));
+  box-shadow:
+    inset 0 1px 0 var(--lq-bisel-hi),
+    inset 0 -1px 0 var(--lq-bisel-lo),
+    0 10px 30px var(--lq-sombra);
+  isolation: isolate;
+}
+
+/* El ángulo del reflejo, registrado como propiedad para que se pueda animar.
+   Un `--x: 210deg` normal no interpola: el navegador salta de un valor a otro.
+   Declarándolo con @property, el giro es continuo. */
+@property --lq-ang {
+  syntax: '<angle>';
+  initial-value: 210deg;
+  inherits: false;
+}
+
+/* Reflejo del canto.
+   Va de brillante a tenue y vuelve, pero NUNCA a transparente: así el contorno
+   es continuo y no se ve cortado a trozos en las piezas alargadas. */
+.lq::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--lq-ang),
+    var(--lq-spec) 0deg,
+    var(--lq-spec-tenue) 85deg,
+    var(--lq-spec) 175deg,
+    var(--lq-spec-tenue) 265deg,
+    var(--lq-spec) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* La luz gira. Solo al pasar el ratón: en reposo, cinco cápsulas girando a la
+   vez serían ruido, y encima animar sin motivo cuesta batería. */
+@keyframes girar-luz {
+  to { --lq-ang: 570deg; }
+}
+
+/* Brillo que sigue al puntero. Solo donde hay puntero de verdad: en táctil no
+   se activa y por tanto no cuesta nada. */
+.lq-vivo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    160px 120px at var(--mx, 50%) var(--my, -30%),
+    var(--lq-brillo), transparent 72%
+  );
+}
+
+.lq > * { position: relative; z-index: 1; }
+
+/* --- Móvil: el desenfoque escala con el área, así que se recorta --- */
+@media (max-width: 768px) {
+  :root, .dark { --lq-blur: 14px; }
+  /* Sin puntero no hay brillo que seguir */
+  .lq-vivo::before { display: none; }
+}
+
+/* --- Salvavidas 1: el usuario ha pedido menos transparencia en su sistema.
+   Es el equivalente web del deslizador que Apple añadió en iOS 27. --- */
+@media (prefers-reduced-transparency: reduce) {
+  .lq {
+    background: var(--lq-solido);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .lq::after, .lq-vivo::before { display: none; }
+}
+
+/* --- Salvavidas 2: navegador sin soporte de backdrop-filter --- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lq { background: var(--lq-solido); }
+  .lq::after { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lq-vivo::before { display: none; }
+}
+
+/* ===== Fondo del hero =====
+   Cuatro imágenes, no una recortada: claro y oscuro, apaisada y vertical. Se
+   eligen enteramente por CSS, sin que JavaScript decida nada — así no hay
+   parpadeo ni se descarga la que no toca.
+
+   El error anterior fue usar un vídeo con un objeto de bordes visibles: al
+   recortarlo a pantalla ancha se veía el canto y parecía partido por la mitad.
+   Estas imágenes son campos de luz sin bordes, así que cualquier recorte vale. */
+/* A sangre de verdad: la sección tiene ancho máximo, así que si el fondo se
+   queda dentro de ella se ve el rectángulo recortado con bandas a los lados.
+   Se saca a todo el ancho de la ventana. El contenedor raíz de la página lleva
+   overflow-x oculto, así que los 100vw no provocan scroll lateral. */
+.hero-fondo {
+  position: absolute;
+  /* Sube por detrás de la barra fija. Si empieza donde empieza la sección,
+     queda una franja del color de la web sin imagen justo bajo el menú y ahí
+     se ve el empalme: es lo que delataba que había una imagen pegada. */
+  top: -7rem;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* La imagen va encima y los degradados debajo, en la misma declaración. Si la
+   imagen aún no ha cargado —o falta— el cristal sigue teniendo color que
+   difuminar en vez de quedarse en un gris sucio. */
+.hero-fondo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    url('/images/fondo-claro.webp'),
+    radial-gradient(42% 50% at 20% 15%, var(--luz-a), transparent 68%),
+    radial-gradient(46% 44% at 84% 28%, var(--luz-b), transparent 66%),
+    radial-gradient(52% 56% at 55% 95%, var(--luz-c), transparent 70%);
+  background-size: cover, auto, auto, auto;
+  background-position: center, center, center, center;
+  background-repeat: no-repeat;
+  /* Doble desvanecido: elipse para los lados y degradado vertical para arriba
+     y abajo. La imagen nunca llega a tener un borde visible por ningún lado,
+     así que no hay canto que delate que es una imagen. */
+  -webkit-mask-image:
+    radial-gradient(150% 120% at 50% 40%, #000 35%, transparent 92%),
+    linear-gradient(to bottom, transparent 0%, #000 18%, #000 72%, transparent 100%);
+  mask-image:
+    radial-gradient(150% 120% at 50% 40%, #000 35%, transparent 92%),
+    linear-gradient(to bottom, transparent 0%, #000 18%, #000 72%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  /* La imagen sale bastante saturada; a media opacidad el color sigue dando
+     al cristal algo que difuminar sin comerse el titular. */
+  opacity: 0.72;
+}
+
+.dark .hero-fondo::before { opacity: 0.85; }
+
+:root {
+  --luz-a: rgba(61, 90, 254, 0.26);
+  --luz-b: rgba(120, 190, 255, 0.28);
+  --luz-c: rgba(180, 160, 255, 0.24);
+}
+
+.dark {
+  --luz-a: rgba(61, 90, 254, 0.40);
+  --luz-b: rgba(20, 120, 220, 0.32);
+  --luz-c: rgba(120, 60, 220, 0.28);
+}
+
+.dark .hero-fondo::before {
+  background-image:
+    url('/images/fondo-oscuro.webp'),
+    radial-gradient(42% 50% at 20% 15%, var(--luz-a), transparent 68%),
+    radial-gradient(46% 44% at 84% 28%, var(--luz-b), transparent 66%),
+    radial-gradient(52% 56% at 55% 95%, var(--luz-c), transparent 70%);
+}
+
+@media (max-width: 768px) {
+  .hero-fondo::before { background-image:
+    url('/images/fondo-claro-movil.webp'),
+    radial-gradient(60% 34% at 30% 12%, var(--luz-a), transparent 68%),
+    radial-gradient(64% 30% at 80% 40%, var(--luz-b), transparent 66%),
+    radial-gradient(70% 38% at 50% 92%, var(--luz-c), transparent 70%);
+  }
+  .dark .hero-fondo::before { background-image:
+    url('/images/fondo-oscuro-movil.webp'),
+    radial-gradient(60% 34% at 30% 12%, var(--luz-a), transparent 68%),
+    radial-gradient(64% 30% at 80% 40%, var(--luz-b), transparent 66%),
+    radial-gradient(70% 38% at 50% 92%, var(--luz-c), transparent 70%);
+  }
+}
+
+/* Velo: garantiza el contraste del titular pase lo que pase en la imagen.
+   Se difumina hacia el centro para que el color siga viéndose por los lados,
+   que es lo que el cristal necesita tener detrás. */
+/* Velo: arranca opaco del color de la web para que la zona de la barra empalme
+   sin costura, se abre en el centro para que el color respire y vuelve a cerrar
+   abajo, entregando la página al fondo liso de la siguiente sección. */
+.hero-fondo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    color-mix(in srgb, var(--background) 60%, transparent) 14%,
+    color-mix(in srgb, var(--background) 25%, transparent) 45%,
+    color-mix(in srgb, var(--background) 70%, transparent) 82%,
+    var(--background) 100%
+  );
+}
+
+/* Iconos del set neumórfico.
+   Hay dos juegos generados de la misma rejilla, uno por tema, y cada uno lleva
+   su propio relieve dibujado. Antes había un solo juego claro metido en una
+   pastilla de color fijo y realzado con un filtro de contraste: en modo oscuro
+   eso era un cuadrado blanco flotando, y a tamaño pequeño no se leía.
+   Es la misma conclusión a la que llegó Apple al rehacer sus iconos en iOS 27:
+   el material va dentro del dibujo, no en un filtro por encima. */
+.icono-feature {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 16px;
+  background-image: var(--ico);
+  background-size: cover;
+  background-position: center;
+}
+
+.dark .icono-feature {
+  background-image: var(--ico-oscuro);
+}
+
+/* La textura de marca, como fondo discreto de sección. Se aplica con
+   ::before para no tocar el fondo del propio contenedor. */
+.seccion-texturada {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Antes esto era una textura de píldoras: un material distinto al de los fondos,
+   con patrón reconocible y bordes rectos. Se leía como una imagen pegada encima
+   del diseño. Ahora usa el mismo campo de luz que el hero, muy tenue y sin un
+   solo borde visible, así que se percibe como iluminación de la página y no
+   como una imagen. */
+.seccion-texturada::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: -1;
+  background-image: url('/images/fondo-claro.webp');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 50%, #000 20%, transparent 80%);
+  mask-image: radial-gradient(120% 90% at 50% 50%, #000 20%, transparent 80%);
+}
+
+.dark .seccion-texturada::before {
+  background-image: url('/images/fondo-oscuro.webp');
+  opacity: 0.42;
+}
+
+@media (max-width: 768px) {
+  .seccion-texturada::before { background-image: url('/images/fondo-claro-movil.webp'); }
+  .dark .seccion-texturada::before { background-image: url('/images/fondo-oscuro-movil.webp'); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-video { opacity: 0.35; }
+}
+
+/* La barra de navegación es fija: sin este margen, al saltar desde el menú el
+   título de la sección de destino queda por debajo de ella y parece que el
+   enlace ha caído en el sitio equivocado. */
+section[id],
+div[id] {
+  scroll-margin-top: 6rem;
 }
 
 ::-webkit-scrollbar {

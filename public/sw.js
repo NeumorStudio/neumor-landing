@@ -1,7 +1,13 @@
 // NeumorStudio Service Worker
 // Versión: 1.0.0
 
-const CACHE_NAME = 'neumorstudio-v2'
+// Subir esta versión SIEMPRE que cambien los iconos o el logotipo. El evento
+// `activate` borra toda caché cuyo nombre no coincida, y es lo único que
+// garantiza que quien ya visitó la web deje de ver la marca anterior: la
+// estrategia de abajo es stale-while-revalidate, así que sin este cambio
+// serviría el logo viejo desde caché al menos una visita más.
+// v3 (29-07-2026): el símbolo pasa a ser el monograma NS.
+const CACHE_NAME = 'neumorstudio-v3'
 const OFFLINE_URL = '/'
 
 // Assets a pre-cachear
@@ -10,7 +16,7 @@ const PRECACHE_ASSETS = [
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/images/logoneumor.jpeg',
+  '/images/logo-mark.png',
 ]
 
 // Instalar: pre-cachear assets críticos

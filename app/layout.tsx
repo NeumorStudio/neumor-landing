@@ -53,10 +53,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "NeumorStudio | Desarrollo de software y automatización",
+  // Sin metadataBase, Next resuelve las imágenes sociales contra localhost:3000
+  // y la previsualización al compartir el enlace sale rota en producción.
+  metadataBase: new URL('https://neumorstudio.com'),
+  title: "NeumorStudio | Software a medida para negocios",
   description:
-    "Estudio de desarrollo de software: aplicaciones web con panel de gestión, automatización de procesos e integraciones a medida. Desarrollo asistido por IA con supervisión de ingeniería.",
-  keywords: ['desarrollo de software', 'aplicaciones web', 'panel de gestion', 'automatizacion', 'inteligencia artificial', 'desarrollo a medida'],
+    "Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación de clientes y atención automática. Aplicaciones a medida con su panel, entregadas funcionando. Proyectos desde 900 €.",
+  keywords: ['software a medida', 'aplicaciones web', 'panel de gestion', 'sistema de reservas', 'automatizacion para negocios', 'desarrollo web para empresas'],
   authors: [{ name: 'NeumorStudio' }],
   creator: 'NeumorStudio',
   publisher: 'NeumorStudio',
@@ -70,27 +73,21 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'NeumorStudio',
   },
+  // Las imágenes sociales las genera app/opengraph-image.tsx. Antes se apuntaba
+  // a /images/og-image.png, un fichero que no existe: cada vez que alguien
+  // compartía el enlace, la previsualización salía vacía.
   openGraph: {
     type: 'website',
     locale: 'es_ES',
     url: 'https://neumorstudio.com',
     siteName: 'NeumorStudio',
-    title: 'NeumorStudio | Desarrollo de software y automatización',
-    description: 'Aplicaciones web con panel de gestión, automatización de procesos e integraciones a medida.',
-    images: [
-      {
-        url: '/images/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'NeumorStudio',
-      },
-    ],
+    title: 'NeumorStudio | Software a medida para negocios',
+    description: 'Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación y atención automática.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NeumorStudio | Desarrollo de software y automatización',
-    description: 'Aplicaciones web con panel de gestión, automatización de procesos e integraciones a medida.',
-    images: ['/images/og-image.png'],
+    title: 'NeumorStudio | Software a medida para negocios',
+    description: 'Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación y atención automática.',
     creator: '@neumorstudio',
   },
   icons: {

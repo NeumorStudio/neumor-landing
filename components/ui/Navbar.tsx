@@ -5,11 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "@/components/theme/ThemeContext";
 
+// Cinco enlaces como máximo: con siete el menú de escritorio se apelmaza.
+// "Precio" entra porque en una web de servicios es de lo más buscado, y
+// "Laboratorio" sale porque ahora vive al final, después de la decisión de compra.
 const navLinks = [
   { href: "#construimos", label: "Construimos" },
+  { href: "#compromisos", label: "Cómo trabajamos" },
   { href: "#proyectos", label: "Proyectos" },
-  { href: "#laboratorio", label: "Laboratorio" },
-  { href: "#proceso", label: "Proceso" },
+  { href: "#precio", label: "Precio" },
   { href: "#contacto", label: "Contacto" },
 ];
 
@@ -45,11 +48,76 @@ function ThemeButton() {
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activa, setActiva] = useState<string>("");
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  /**
+   * Scrollspy: marca en el menú la sección que se está viendo.
+   *
+   * Se usa IntersectionObserver y no el evento de scroll a propósito: el
+   * observador solo avisa cuando una sección entra o sale, mientras que
+   * escuchar el scroll obligaría a calcular posiciones en cada fotograma —y
+   * eso, con las capas de cristal, es justo lo que no conviene pagar.
+   *
+   * El margen superior descuenta la altura de la barra, para que una sección
+   * cuente como activa cuando su título asoma bajo el menú, no cuando toca el
+   * borde de la ventana.
+   */
+  useEffect(() => {
+    let obs: IntersectionObserver | null = null;
+    let raf = 0;
+
+    const arrancar = () => {
+      const secciones = navLinks
+        .map((l) => document.querySelector(l.href))
+        .filter(Boolean) as Element[];
+
+      // La barra puede montarse antes de que el resto de la página esté en el
+      // DOM. Si aún no hay secciones, se reintenta en el siguiente frame en vez
+      // de rendirse: rendirse era el motivo de que el menú no se marcara nunca.
+      if (!secciones.length) {
+        raf = requestAnimationFrame(arrancar);
+        return;
+      }
+
+    /*
+     * No se usa `intersectionRatio` para decidir: ese ratio se calcula sobre el
+     * tamaño del propio elemento, así que una sección más alta que la ventana
+     * nunca alcanza un umbral alto y el menú no se marcaba nunca.
+     *
+     * En su lugar se recorta la zona de detección a una banda estrecha bajo la
+     * barra. La sección que cruza esa banda es la activa, sin importar lo larga
+     * que sea.
+     */
+      const dentro = new Set<string>();
+      obs = new IntersectionObserver(
+        (entradas) => {
+          for (const e of entradas) {
+            const id = `#${e.target.id}`;
+            if (e.isIntersecting) dentro.add(id);
+            else dentro.delete(id);
+          }
+          // Si hay varias en la banda, gana la primera en el orden del menú.
+          const marcada = navLinks.find((l) => dentro.has(l.href));
+          setActiva(marcada ? marcada.href : "");
+        },
+        { rootMargin: "-88px 0px -78% 0px", threshold: 0 }
+      );
+
+      secciones.forEach((s) => obs!.observe(s));
+    };
+
+    arrancar();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      obs?.disconnect();
+    };
   }, []);
 
   const scrollToSection = (href: string) => {
@@ -61,10 +129,13 @@ export function Navbar() {
     <nav className={`ng-navbar ${isScrolled ? "scrolled" : ""}`}>
       <div className="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
+        {/* El logo también va en cápsula: sin la banda de la barra, es la única
+            pieza que quedaría sin fondo propio y perdería legibilidad cuando
+            pasa contenido con contraste por debajo. */}
         <Link
           href="/"
           aria-label="NeumorStudio"
-          className="ng-wordmark font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
+          className="ng-wordmark nav-item !py-1.5 font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
           {/* Símbolo: trazo-n con punto azul */}
           <Image
@@ -88,10 +159,13 @@ export function Navbar() {
             <button
               key={link.href}
               onClick={() => scrollToSection(link.href)}
-              className="text-sm text-[var(--ink-soft)] hover:text-[var(--foreground)]
-                         transition-colors relative z-10 px-2 py-2"
+              className={`nav-item text-sm text-[var(--ink-soft)] relative z-10 ${
+                activa === link.href ? "activa" : ""
+              }`}
+              aria-current={activa === link.href ? "true" : undefined}
             >
               {link.label}
+              {activa === link.href && <span className="punto-activo" aria-hidden="true" />}
             </button>
           ))}
 

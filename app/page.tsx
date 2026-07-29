@@ -4,6 +4,9 @@ import { useEffect, useRef } from 'react'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
+import { marca, precio, sitio, costeManual } from "@/lib/content/marca"
+import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
+import { AgendaQueSeLlena } from "@/components/ui/AgendaQueSeLlena"
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Draggable } from 'gsap/Draggable'
@@ -21,13 +24,16 @@ const toyPieces = [
   { label: 'juego', lab: true },
 ]
 
-// Lo que incluye el producto webs+panel
+// Lo que incluye el producto webs+panel.
+// Los iconos salen todos de la misma rejilla generada de una vez, así que
+// comparten grosor de trazo, relieve y luz: es lo que hace que se lean como un
+// set y no como nueve iconos sueltos de sitios distintos.
 const productFeatures = [
-  { title: 'Web orientada a conversión', copy: 'Diseño y contenidos estructurados para que la visita se convierta en cliente.' },
-  { title: 'Panel de gestión', copy: 'Administra precios, horarios y contenidos con autonomía total, sin depender de terceros.' },
-  { title: 'Área de clientes', copy: 'Un espacio privado que fideliza y genera valor recurrente.' },
-  { title: 'Comunicación y campañas', copy: 'Newsletter y mensajes segmentados, enviados en el momento oportuno.' },
-  { title: 'Automatización de procesos', copy: 'Respuestas, recordatorios y seguimiento que funcionan sin intervención manual.' },
+  { title: 'Web que convierte', copy: 'Pensada para que la visita acabe siendo cliente.', icono: 'web' },
+  { title: 'Panel de gestión', copy: 'Precios, horarios y contenidos, sin depender de nadie.', icono: 'panel' },
+  { title: 'Área de clientes', copy: 'Un espacio privado que fideliza.', icono: 'clientes' },
+  { title: 'Campañas', copy: 'Mensajes segmentados en el momento oportuno.', icono: 'campanas' },
+  { title: 'Automatización', copy: 'Respuestas y recordatorios sin intervenir.', icono: 'automatizacion' },
 ]
 
 /**
@@ -37,13 +43,15 @@ const productFeatures = [
  */
 
 // Lo que hace Salonio de verdad, no lo que promete el folleto.
+// Esta es la única sección que se deja larga a propósito: es la prueba, y el
+// contraste con el resto es lo que le dice al ojo dónde detenerse.
 const salonioFeatures = [
-  { title: 'Reservas sin llamadas', copy: 'El cliente elige servicio, profesional y hueco libre. La agenda del salón se actualiza sola.' },
-  { title: 'Cobro de la señal', copy: 'Stripe Connect: el salón cobra la cita o una señal, y el dinero va directo a su banco sin pasar por nosotros.' },
-  { title: 'Recordatorios automáticos', copy: 'Email y notificación push antes de la cita. Menos ausencias sin que nadie tenga que avisar a mano.' },
-  { title: 'Fidelización por sellos', copy: 'Programa de sellos con canje atómico: el barbero ve en la agenda que al siguiente le toca premio.' },
-  { title: 'Instalable en el móvil', copy: 'PWA: la web del salón se instala como app en Android y iPhone, sin pasar por ninguna tienda.' },
-  { title: 'Dominio propio', copy: 'Cada salón puede conectar su dominio. Sin marketplace ni comisiones por cita delante de su marca.' },
+  { title: 'Reservas sin llamadas', copy: 'El cliente elige hueco y la agenda se actualiza sola.' },
+  { title: 'Cobro de la señal', copy: 'El dinero va directo al banco del salón, sin pasar por nosotros.' },
+  { title: 'Recordatorios automáticos', copy: 'Menos ausencias sin que nadie avise a mano.' },
+  { title: 'Fidelización por sellos', copy: 'El barbero ve en la agenda a quién le toca premio.' },
+  { title: 'Instalable en el móvil', copy: 'Se instala como app, sin pasar por ninguna tienda.' },
+  { title: 'Dominio propio', copy: 'Sin marketplace ni comisiones delante de su marca.' },
 ]
 
 const salonioStack = ['Next.js', 'Supabase', 'PostgreSQL + RLS', 'Stripe Connect', 'Vercel', 'Web Push']
@@ -260,48 +268,57 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-x-hidden">
+      <BrilloLiquido />
       <Navbar />
 
       <main className="min-h-screen pt-20">
         {/* ========== HERO: MANIFIESTO + MESA DE TALLER ========== */}
-        <NeumorfSection className="py-14 md:py-20">
-          <div className="max-w-3xl mx-auto text-center">
+        <NeumorfSection className="py-14 md:py-20 relative">
+          <div className="hero-fondo" aria-hidden="true" />
+          <div className="max-w-3xl mx-auto text-center relative z-10">
             <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] mb-6">
-              NeumorStudio — desarrollo de software
+              {marca.descriptor}
             </p>
 
+            {/* El titular es la misión dicha en una línea. Habla de lo que gana
+                quien paga, no de lo que hacemos nosotros. */}
             <h1 className="font-display text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-6">
-              <span className="hero-line block">Desarrollamos software</span>
-              <span className="hero-line block text-[var(--accent)]">que se siente bien usar.</span>
+              <span className="hero-line block">Montamos el software</span>
+              <span className="hero-line block">que tu negocio</span>
+              <span className="hero-line block text-[var(--accent)]">todavía hace a mano.</span>
             </h1>
 
             <p className="hero-desc text-base md:text-lg text-[var(--ink-soft)] mb-8 max-w-xl mx-auto">
-              Aplicaciones web con panel de gestión, automatización de procesos
-              e integraciones a medida. Aplicamos IA en nuestro flujo de trabajo
-              para acelerar y optimizar cada desarrollo, con supervisión
-              de ingeniería en cada entrega.
+              {marca.subtitular}
             </p>
 
+            {/* El primer botón lleva a un producto en producción, no a un
+                formulario: es lo que hace verdad el "se demuestra, no se promete". */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
-              <button
-                onClick={() => document.querySelector('#construimos')?.scrollIntoView({ behavior: 'smooth' })}
+              <a
+                href={sitio.demoSalonio}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hero-cta ng-btn-primary"
               >
-                Ver qué construimos
+                Ver uno funcionando
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-              </button>
+              </a>
               <button
                 onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
                 className="hero-cta ng-raised px-6 py-3 text-sm font-medium"
               >
-                Solicitar propuesta
+                Cuéntanos tu caso
               </button>
             </div>
 
             {/* Mesa de taller: las piezas se arrastran de verdad */}
-            <div ref={trayRef} className="toy-tray h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
+            {/* La mesa de piezas pasa a ser cristal: es lo único que flota sobre
+                el fondo del hero y por tanto el sitio natural del material.
+                Su contenido —las piezas arrastrables— sigue intacto. */}
+            <div ref={trayRef} className="toy-tray lq lq-vivo h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
               {toyPieces.map((piece) => (
                 <span key={piece.label} className="toy-piece" data-lab={piece.lab || undefined}>
                   <span className="toy-dot" />
@@ -310,6 +327,34 @@ export default function Home() {
               ))}
             </div>
           </div>
+        </NeumorfSection>
+
+        {/* ========== EL COSTE DE HACERLO A MANO ==========
+            La bisagra del scroll: el hero promete y esta sección explica por qué
+            hace falta. Va justo después del titular para que quien llega se
+            reconozca antes de que le vendamos nada. */}
+        <NeumorfSection id="coste" className="max-w-6xl">
+          <div className="reveal text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+              {costeManual.titulo}
+            </h2>
+            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
+              {costeManual.entrada}
+            </p>
+          </div>
+
+          <div className="reveal grid gap-6 md:grid-cols-2">
+            {costeManual.puntos.map((punto) => (
+              <article key={punto.titulo} className="ng-card p-6">
+                <h3 className="font-display text-lg font-bold mb-2">{punto.titulo}</h3>
+                <p className="text-sm text-[var(--ink-soft)]">{punto.detalle}</p>
+              </article>
+            ))}
+          </div>
+
+          <p className="reveal text-center font-display text-xl md:text-2xl font-bold tracking-tight mt-10">
+            {costeManual.cierre}
+          </p>
         </NeumorfSection>
 
         {/* ========== LO QUE CONSTRUIMOS ========== */}
@@ -344,9 +389,22 @@ export default function Home() {
 
             <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
               {productFeatures.map((feature) => (
-                <div key={feature.title}>
-                  <h4 className="font-semibold text-sm mb-1">{feature.title}</h4>
-                  <p className="text-sm text-[var(--ink-soft)]">{feature.copy}</p>
+                <div key={feature.title} className="flex gap-3 items-start">
+                  {/* Cada tema carga su propio icono, y el cambio lo hace el CSS:
+                      así no hay parpadeo al alternar claro/oscuro ni hace falta
+                      que JavaScript decida nada. */}
+                  <span
+                    className="icono-feature"
+                    aria-hidden="true"
+                    style={{
+                      '--ico': `url(/images/iconos/${feature.icono}.webp)`,
+                      '--ico-oscuro': `url(/images/iconos-oscuro/${feature.icono}.webp)`,
+                    } as React.CSSProperties}
+                  />
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">{feature.title}</h4>
+                    <p className="text-sm text-[var(--ink-soft)]">{feature.copy}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -359,6 +417,31 @@ export default function Home() {
                 </span>
               ))}
             </div>
+          </div>
+        </NeumorfSection>
+
+        {/* ========== CÓMO TRABAJAMOS: LOS VALORES, CON SU PRUEBA ==========
+            Va antes de Proyectos a propósito: aquí se promete y justo debajo
+            está Salonio para confirmarlo. Un valor sin prueba es un eslogan. */}
+        <NeumorfSection id="compromisos" className="max-w-6xl seccion-texturada">
+          <div className="reveal text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+              Cómo trabajamos
+            </h2>
+            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
+              Cinco compromisos, cada uno con lo que lo demuestra al lado.
+            </p>
+          </div>
+
+          <div className="reveal grid gap-6 md:grid-cols-2">
+            {marca.valores.map((valor) => (
+              <article key={valor.titulo} className="ng-card p-6 flex flex-col gap-2">
+                <h3 className="font-display text-lg font-bold">{valor.titulo}</h3>
+                <p className="font-mono text-xs text-emerald-600 dark:text-emerald-400">
+                  {valor.prueba}
+                </p>
+              </article>
+            ))}
           </div>
         </NeumorfSection>
 
@@ -387,12 +470,16 @@ export default function Home() {
             <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
               Salonio — reservas para peluquerías
             </h3>
-            <p className="text-[var(--ink-soft)] max-w-2xl mb-10">
-              Cada salón tiene su propia web de reservas, su panel de gestión y
-              su agenda. Los clientes reservan solos a cualquier hora; el dueño
-              deja de coger el teléfono a mitad de un corte. Sin comisiones por
-              cita y sin un marketplace delante de su marca.
+            <p className="text-[var(--ink-soft)] max-w-2xl mb-8">
+              Los clientes reservan solos a cualquier hora. El dueño deja de coger
+              el teléfono a mitad de un corte.
             </p>
+
+            {/* Esto sustituye al párrafo que explicaba cómo entran las reservas:
+                se ve en cinco segundos y no hay que leerlo. */}
+            <div className="mb-10">
+              <AgendaQueSeLlena />
+            </div>
 
             {/* Capturas reales del producto, no maquetas */}
             {/* El móvil se acota a 240px: a su ancho natural salía el doble de
@@ -464,37 +551,14 @@ export default function Home() {
           </div>
         </NeumorfSection>
 
-        {/* ========== EL LABORATORIO ========== */}
-        <NeumorfSection id="laboratorio" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              El laboratorio
-            </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Nuestra línea de I+D. Exploramos tecnologías y prototipos
-              que, una vez validados, se incorporan a productos y proyectos de cliente.
-            </p>
-          </div>
-
-          <div className="reveal grid gap-6 md:grid-cols-3">
-            {labItems.map((item) => (
-              <article key={item.title} className="ng-card p-6">
-                <span className="lab-status mb-4">{item.status}</span>
-                <h3 className="font-display text-lg font-bold mt-4 mb-2">{item.title}</h3>
-                <p className="text-sm text-[var(--ink-soft)]">{item.copy}</p>
-              </article>
-            ))}
-          </div>
-        </NeumorfSection>
-
-        {/* ========== CÓMO TRABAJAMOS ========== */}
+        {/* ========== EL PROCESO ========== */}
         <NeumorfSection id="proceso" className="max-w-6xl">
           <div className="reveal text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              Cómo trabajamos
+              Del primer contacto a la entrega
             </h2>
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Método claro, plazos cerrados y comunicación directa
+              Tres pasos, plazos cerrados y una sola persona con la que hablar
               durante todo el proyecto.
             </p>
           </div>
@@ -511,31 +575,71 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="reveal ng-card p-6 md:p-8 mt-6">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              <h3 className="font-display text-lg md:text-xl font-bold">
-                Desarrollo asistido por IA
-              </h3>
-              <span className="ng-badge text-[var(--ink-soft)] text-xs">metodología</span>
-            </div>
-            <p className="text-sm md:text-base text-[var(--ink-soft)] max-w-3xl mb-6">
-              Integramos inteligencia artificial en nuestro flujo de trabajo con un
-              principio claro: automatiza lo repetitivo, no sustituye el criterio.
-              Cada entrega pasa revisión de ingeniería antes de llegar a producción.
+        </NeumorfSection>
+
+        {/* ========== CÓMO COBRAMOS ==========
+            No es la tarifa completa: es el mínimo que hace honesto el quinto
+            valor. Prometer que no habrá sorpresas en la factura y no dar ni un
+            número se nota, y se nota mal. */}
+        <NeumorfSection id="precio" className="max-w-6xl seccion-texturada">
+          <div className="reveal text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+              {precio.titulo}
+            </h2>
+            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
+              {precio.entrada}
             </p>
-            <div className="grid gap-x-8 gap-y-4 sm:grid-cols-3">
-              <div>
-                <h4 className="font-semibold text-sm mb-1">Automatizar</h4>
-                <p className="text-sm text-[var(--ink-soft)]">Tareas repetitivas, pruebas y despliegues, para dedicar el tiempo a lo que aporta valor.</p>
+          </div>
+
+          <div className="reveal grid gap-6 md:grid-cols-3">
+            {precio.puntos.map((punto) => (
+              <div key={punto.titulo} className="ng-card p-6">
+                <h3 className="font-display text-lg font-bold mb-2">{punto.titulo}</h3>
+                <p className="text-sm text-[var(--ink-soft)]">{punto.detalle}</p>
               </div>
-              <div>
-                <h4 className="font-semibold text-sm mb-1">Optimizar</h4>
-                <p className="text-sm text-[var(--ink-soft)]">Rendimiento, calidad de código y detección temprana de errores en cada iteración.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm mb-1">Supervisar</h4>
-                <p className="text-sm text-[var(--ink-soft)]">Revisión humana de cada resultado: la responsabilidad técnica nunca se delega.</p>
-              </div>
+            ))}
+          </div>
+
+          <div className="reveal ng-card p-6 md:p-8 mt-6 flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+            <div className="flex-1">
+              <p className="font-display text-xl md:text-2xl font-bold tracking-tight mb-1">
+                {precio.desde}
+              </p>
+              <p className="text-sm text-[var(--ink-soft)]">{precio.nota}</p>
+            </div>
+            <button
+              onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
+              className="ng-btn-primary flex-none"
+            >
+              Pedir propuesta
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </div>
+        </NeumorfSection>
+
+        {/* ========== EL LABORATORIO ==========
+            Baja hasta aquí, después del precio: quien decide comprar ya ha
+            decidido antes de llegar, así que a partir de este punto el
+            contenido técnico no le quita el sitio a nada. */}
+        <NeumorfSection id="laboratorio" className="max-w-6xl">
+          {/* Era la sección más larga siendo la menos importante: 152 palabras,
+              tres tarjetas y un bloque entero sobre metodología interna. Queda
+              en una línea y las etiquetas. Quien quiera detalle, va a GitHub. */}
+          <div className="reveal text-center max-w-2xl mx-auto">
+            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
+              El laboratorio
+            </h2>
+            <p className="text-[var(--ink-soft)] mb-6">
+              Lo que probamos por dentro antes de que llegue a un cliente.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {labItems.map((item) => (
+                <span key={item.title} className="ng-raised px-4 py-2 text-sm cursor-default">
+                  {item.title}
+                </span>
+              ))}
             </div>
           </div>
         </NeumorfSection>
@@ -551,12 +655,20 @@ export default function Home() {
                   </h2>
                   <p className="text-[var(--ink-soft)] leading-relaxed">
                     Cuéntanos qué necesitas y te enviaremos una propuesta
-                    detallada: alcance, funcionalidades, plazos y presupuesto.
+                    concreta: qué montaríamos, por dónde empezaríamos, en cuánto
+                    tiempo y cuánto costaría.
                   </p>
                 </div>
 
+                {/* Cualificar antes de que escriban ahorra tiempo a los dos y
+                    sube la calidad de lo que entra por el formulario. */}
                 <ul className="space-y-3">
-                  {['Respuesta en menos de 24 horas', 'Propuesta detallada sin compromiso'].map((item) => (
+                  {[
+                    'Ideal si ya tienes negocio y pierdes horas en tareas repetidas',
+                    'También si estás arrancando y quieres empezar con base sólida',
+                    'Respuesta en menos de 24 horas',
+                    'Si no te encajamos, te lo decimos',
+                  ].map((item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-[var(--ink-soft)]">
                       <span className="w-5 h-5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
                         <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
