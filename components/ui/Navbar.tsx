@@ -12,7 +12,6 @@ const navLinks = [
   { href: "#construimos", label: "Construimos" },
   { href: "#compromisos", label: "Cómo trabajamos" },
   { href: "#proyectos", label: "Proyectos" },
-  { href: "#precio", label: "Precio" },
   { href: "#contacto", label: "Contacto" },
 ];
 

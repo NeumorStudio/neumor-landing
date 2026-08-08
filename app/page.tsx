@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
-import { marca, precio, sitio, costeManual } from "@/lib/content/marca"
+import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
 import { AgendaQueSeLlena } from "@/components/ui/AgendaQueSeLlena"
 import gsap from 'gsap'
@@ -577,52 +577,10 @@ export default function Home() {
 
         </NeumorfSection>
 
-        {/* ========== CÓMO COBRAMOS ==========
-            No es la tarifa completa: es el mínimo que hace honesto el quinto
-            valor. Prometer que no habrá sorpresas en la factura y no dar ni un
-            número se nota, y se nota mal. */}
-        <NeumorfSection id="precio" className="max-w-6xl seccion-texturada">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              {precio.titulo}
-            </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              {precio.entrada}
-            </p>
-          </div>
-
-          <div className="reveal grid gap-6 md:grid-cols-3">
-            {precio.puntos.map((punto) => (
-              <div key={punto.titulo} className="ng-card p-6">
-                <h3 className="font-display text-lg font-bold mb-2">{punto.titulo}</h3>
-                <p className="text-sm text-[var(--ink-soft)]">{punto.detalle}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="reveal ng-card p-6 md:p-8 mt-6 flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-            <div className="flex-1">
-              <p className="font-display text-xl md:text-2xl font-bold tracking-tight mb-1">
-                {precio.desde}
-              </p>
-              <p className="text-sm text-[var(--ink-soft)]">{precio.nota}</p>
-            </div>
-            <button
-              onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
-              className="ng-btn-primary flex-none"
-            >
-              Pedir propuesta
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </div>
-        </NeumorfSection>
-
         {/* ========== EL LABORATORIO ==========
-            Baja hasta aquí, después del precio: quien decide comprar ya ha
-            decidido antes de llegar, así que a partir de este punto el
-            contenido técnico no le quita el sitio a nada. */}
+            Baja hasta aquí: quien decide comprar ya ha decidido antes de
+            llegar, así que a partir de este punto el contenido técnico no le
+            quita el sitio a nada. */}
         <NeumorfSection id="laboratorio" className="max-w-6xl">
           {/* Era la sección más larga siendo la menos importante: 152 palabras,
               tres tarjetas y un bloque entero sobre metodología interna. Queda

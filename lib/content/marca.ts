@@ -93,29 +93,6 @@ export const costeManual = {
   cierre: "Todo esto son sistemas. Y los sistemas se montan una vez.",
 } as const;
 
-// Lo mínimo que hace honesto el valor "sin sorpresas en la factura". Si se
-// promete no dar sorpresas y no se publica ni un número, el valor se cae solo.
-export const precio = {
-  titulo: "Precio cerrado antes de empezar",
-  entrada: "Ni presupuestos abiertos ni horas sueltas. Solo estas tres cosas.",
-  puntos: [
-    {
-      titulo: "Un pago de puesta en marcha",
-      detalle: "Cerrado tras el análisis. No se amplía a mitad.",
-    },
-    {
-      titulo: "Una cuota mensual",
-      detalle: "Alojamiento, copias, actualizaciones y soporte.",
-    },
-    {
-      titulo: "El consumo de IA, con tope",
-      detalle: "Límite mensual pactado por escrito.",
-    },
-  ],
-  desde: "Proyectos desde 900 € de puesta en marcha",
-  nota: "El importe final depende de tu caso y te lo decimos en la propuesta.",
-} as const;
-
 export const contacto = {
   email: "info@neumorstudio.com",
   redes: {

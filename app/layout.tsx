@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://neumorstudio.com'),
   title: "NeumorStudio | Software a medida para negocios",
   description:
-    "Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación de clientes y atención automática. Aplicaciones a medida con su panel, entregadas funcionando. Proyectos desde 900 €.",
+    "Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación de clientes y atención automática. Aplicaciones a medida con su panel, entregadas funcionando.",
   keywords: ['software a medida', 'aplicaciones web', 'panel de gestion', 'sistema de reservas', 'automatizacion para negocios', 'desarrollo web para empresas'],
   authors: [{ name: 'NeumorStudio' }],
   creator: 'NeumorStudio',
