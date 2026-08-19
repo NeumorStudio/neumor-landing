@@ -403,3 +403,42 @@
     transition: none;
   }
 }
+
+/* ---------- Selector de proyectos ----------
+   La placa activa se queda hundida, con el mismo `inset ... var(--engrave)`
+   que el sistema usa para todo lo grabado. Así la pestaña elegida se lee como
+   una tecla que se ha quedado dentro y no como un cambio de color, que en
+   modo oscuro apenas se distinguiria. */
+/* `.ng-raised` es `inline-flex` centrado, asi que el nombre y la naturaleza
+   salian en fila y con el mismo peso visual. Va aqui y no en utilidades de
+   Tailwind porque este fichero no esta en una capa: gana al `@layer utilities`
+   y las clases se ignorarian sin decir nada. */
+.ng-placa {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.6rem 1.1rem;
+  text-align: left;
+}
+
+.ng-placa-activa {
+  background: var(--bg-deep);
+  box-shadow: inset 0 2px 4px var(--engrave);
+  transform: translateY(1px);
+}
+.ng-placa-activa .font-display {
+  color: var(--accent);
+}
+
+/* El panel entra con un desplazamiento corto al cambiar de proyecto: sin el,
+   el contenido se sustituye de golpe y no se entiende que ha cambiado. */
+@keyframes ng-panel-aparece {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.ng-panel-entra {
+  animation: ng-panel-aparece 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ng-panel-entra { animation-duration: 0.01ms; }
+}

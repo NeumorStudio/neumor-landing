@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from 'react'
 import { ContactForm } from "@/components/forms/ContactForm"
+import { Proyectos } from "@/components/ui/Proyectos"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
 import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
-import { AgendaQueSeLlena } from "@/components/ui/AgendaQueSeLlena"
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Draggable } from 'gsap/Draggable'
@@ -42,19 +42,6 @@ const productFeatures = [
  * Salonio está en producción y la sección de abajo enseña el producto real.
  */
 
-// Lo que hace Salonio de verdad, no lo que promete el folleto.
-// Esta es la única sección que se deja larga a propósito: es la prueba, y el
-// contraste con el resto es lo que le dice al ojo dónde detenerse.
-const salonioFeatures = [
-  { title: 'Reservas sin llamadas', copy: 'El cliente elige hueco y la agenda se actualiza sola.' },
-  { title: 'Cobro de la señal', copy: 'El dinero va directo al banco del salón, sin pasar por nosotros.' },
-  { title: 'Recordatorios automáticos', copy: 'Menos ausencias sin que nadie avise a mano.' },
-  { title: 'Fidelización por sellos', copy: 'El barbero ve en la agenda a quién le toca premio.' },
-  { title: 'Instalable en el móvil', copy: 'Se instala como app, sin pasar por ninguna tienda.' },
-  { title: 'Dominio propio', copy: 'Sin marketplace ni comisiones delante de su marca.' },
-]
-
-const salonioStack = ['Next.js', 'Supabase', 'PostgreSQL + RLS', 'Stripe Connect', 'Vercel', 'Web Push']
 
 const nichos = [
   'Restaurantes', 'Salones', 'Clínicas',
@@ -445,110 +432,23 @@ export default function Home() {
           </div>
         </NeumorfSection>
 
-        {/* ========== PROYECTOS: SALONIO ========== */}
+        {/* ========== PROYECTOS ==========
+            Selector, no pila. Iban uno debajo de otro y cada encargo nuevo
+            alargaba la home; ahora las placas enseñan el catálogo de trabajos
+            de un vistazo y el panel pinta el elegido. El contenido está en
+            `lib/content/proyectos.ts`: añadir uno es escribir un objeto. */}
         <NeumorfSection id="proyectos" className="max-w-6xl">
           <div className="reveal text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
               Proyectos
             </h2>
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Producto propio en producción. Lo que describimos arriba,
-              funcionando y con clientes reales usándolo cada día.
+              Dos en producción, de dos clases distintas: uno es nuestro y el
+              otro es de un cliente. Los dos con gente usándolos hoy.
             </p>
           </div>
 
-          <div className="reveal ng-card p-6 md:p-10">
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="ng-badge text-emerald-600 dark:text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                En producción
-              </span>
-              <span className="ng-badge text-[var(--ink-soft)]">Producto propio</span>
-              <span className="ng-badge text-[var(--ink-soft)]">Peluquerías y barberías</span>
-            </div>
-
-            <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
-              Salonio — reservas para peluquerías
-            </h3>
-            <p className="text-[var(--ink-soft)] max-w-2xl mb-8">
-              Los clientes reservan solos a cualquier hora. El dueño deja de coger
-              el teléfono a mitad de un corte.
-            </p>
-
-            {/* Esto sustituye al párrafo que explicaba cómo entran las reservas:
-                se ve en cinco segundos y no hay que leerlo. */}
-            <div className="mb-10">
-              <AgendaQueSeLlena />
-            </div>
-
-            {/* Capturas reales del producto, no maquetas */}
-            {/* El móvil se acota a 240px: a su ancho natural salía el doble de
-                alto que la captura de escritorio y dejaba un hueco muerto. */}
-            <div className="grid gap-6 md:grid-cols-[2fr_1fr] items-center justify-items-center mb-10">
-              <figure>
-                <div className="ng-video-card overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/salonio-web.webp"
-                    alt="Página de inicio de Salonio en escritorio"
-                    width={1600}
-                    height={1000}
-                    loading="lazy"
-                    className="w-full h-auto"
-                  />
-                </div>
-                <figcaption className="font-mono text-xs text-[var(--ink-soft)] mt-3 text-center">
-                  La web pública
-                </figcaption>
-              </figure>
-              <figure className="w-full max-w-[240px]">
-                <div className="ng-video-card overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/salonio-movil.webp"
-                    alt="Salonio en un móvil, instalable como app"
-                    width={600}
-                    height={1299}
-                    loading="lazy"
-                    className="w-full h-auto"
-                  />
-                </div>
-                <figcaption className="font-mono text-xs text-[var(--ink-soft)] mt-3 text-center">
-                  Instalable en el móvil
-                </figcaption>
-              </figure>
-            </div>
-
-            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
-              {salonioFeatures.map((feature) => (
-                <div key={feature.title}>
-                  <h4 className="font-semibold text-sm mb-1">{feature.title}</h4>
-                  <p className="text-sm text-[var(--ink-soft)]">{feature.copy}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 mb-8">
-              <span className="text-sm text-[var(--ink-soft)] mr-1">Construido con:</span>
-              {salonioStack.map((tech) => (
-                <span key={tech} className="ng-raised px-4 py-2 text-sm cursor-default">
-                  {tech}
-                </span>
-              ))}
-            </div>
-
-            <a
-              href="https://reservas.neumorstudio.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ng-btn-primary inline-flex"
-            >
-              Ver Salonio
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </a>
-          </div>
+          <Proyectos />
         </NeumorfSection>
 
         {/* ========== EL PROCESO ========== */}
