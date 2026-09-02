@@ -198,6 +198,111 @@ body {
   .lq-vivo::before { display: none; }
 }
 
+/* ===== Entradas: del JavaScript al CSS =====
+   Todo esto lo hacía GSAP dentro de un `useEffect`, y ahí estaba el problema:
+   el HTML del servidor llegaba con el titular visible, el navegador lo pintaba,
+   y en cuanto la página se hidrataba GSAP le aplicaba el estado inicial y lo
+   escondía para volver a mostrarlo. El texto parpadeaba, y —peor— el elemento
+   más grande de la pantalla dejaba de contar como candidato a LCP hasta que la
+   animación terminaba: la métrica quedaba atada a la descarga y ejecución de
+   todo el JavaScript de la página.
+
+   Ahora el estado inicial lo declara el CSS, que llega antes y no depende de
+   que se hidrate nada. */
+
+/* El titular NO anima la opacidad. Es deliberado: un elemento a `opacity: 0`
+   no puede ser el elemento LCP, así que animarle la opacidad es aplazar la
+   métrica a propósito. Moviéndolo solo con `transform` se pinta legible desde
+   el primer frame, el movimiento se sigue viendo, y como `transform` no entra
+   en el cálculo de layout, tampoco genera desplazamiento de contenido. */
+.hero-line {
+  animation: ng-sube 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.hero-line:nth-child(2) { animation-delay: 0.12s; }
+.hero-line:nth-child(3) { animation-delay: 0.24s; }
+
+@keyframes ng-sube {
+  from { transform: translateY(30px); }
+  to   { transform: none; }
+}
+
+/* El resto del hero sí puede aparecer: no es el elemento más grande. */
+.hero-eyebrow,
+.hero-desc,
+.hero-cta,
+.toy-tray,
+.toy-piece {
+  animation: ng-entra 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.hero-eyebrow { animation-delay: 0s; }
+.hero-desc    { animation-delay: 0.34s; }
+.hero-cta:nth-of-type(1) { animation-delay: 0.42s; }
+.hero-cta:nth-of-type(2) { animation-delay: 0.50s; }
+.toy-tray     { animation-delay: 0.54s; }
+
+/* Las piezas caen con rebote, como el `back.out(2)` que tenían. */
+.toy-piece {
+  animation-name: ng-cae-pieza;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toy-piece:nth-child(1) { animation-delay: 0.58s; }
+.toy-piece:nth-child(2) { animation-delay: 0.65s; }
+.toy-piece:nth-child(3) { animation-delay: 0.72s; }
+.toy-piece:nth-child(4) { animation-delay: 0.79s; }
+.toy-piece:nth-child(5) { animation-delay: 0.86s; }
+
+@keyframes ng-entra {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes ng-cae-pieza {
+  from { opacity: 0; transform: translateY(-40px) scale(0.6); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Entradas por scroll. La clase `.visible` la pone `ActivarReveals` con un
+   IntersectionObserver; el escalonado sale de `--i`, que ese mismo componente
+   numera una vez. El navegador interpola en el compositor. */
+.reveal > *,
+.nichos-section > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+
+.reveal.visible > *,
+.nichos-section.visible > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* Sin movimiento: todo visible desde el primer momento y ni una animación.
+   Cubre también `animate-pulse`, la utilidad de Tailwind del punto verde de
+   los distintivos, que era la única animación que se escapaba del sistema. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-line,
+  .hero-eyebrow,
+  .hero-desc,
+  .hero-cta,
+  .toy-tray,
+  .toy-piece {
+    animation: none;
+  }
+
+  .reveal > *,
+  .nichos-section > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .animate-pulse { animation: none; }
+}
+
 /* ===== Fondo del hero =====
    Cuatro imágenes, no una recortada: claro y oscuro, apaisada y vertical. Se
    eligen enteramente por CSS, sin que JavaScript decida nada — así no hay
@@ -307,7 +412,7 @@ body {
     to bottom,
     var(--background) 0%,
     color-mix(in srgb, var(--background) 60%, transparent) 14%,
-    color-mix(in srgb, var(--background) 25%, transparent) 45%,
+    color-mix(in srgb, var(--background) 55%, transparent) 45%,
     color-mix(in srgb, var(--background) 70%, transparent) 82%,
     var(--background) 100%
   );
@@ -375,6 +480,37 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-video { opacity: 0.35; }
+}
+
+/* ===== Saltar al contenido =====
+   Fuera de pantalla hasta que recibe el foco. Es el primer tabulador de la
+   página: sin él, llegar al contenido con el teclado obliga a pasar por los
+   cuatro enlaces de la barra, el conmutador de tema y el botón de propuesta,
+   en cada carga. */
+.ng-saltar {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 12px 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ng-saltar:focus-visible {
+  left: 0;
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* El desplazamiento suave lo hacía `scrollIntoView` desde JavaScript en cada
+   enlace del menú y de los botones del hero. El navegador lo hace solo, y así
+   los enlaces internos pueden ser enlaces de verdad. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
 /* La barra de navegación es fija: sin este margen, al saltar desde el menú el

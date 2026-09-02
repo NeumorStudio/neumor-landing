@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { crearLead } from '@/app/actions/leads'
 
 export function ContactForm() {
@@ -12,6 +12,18 @@ export function ContactForm() {
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const confirmacion = useRef<HTMLHeadingElement>(null)
+
+  /**
+   * Al enviarse bien, el formulario entero se desmonta y en su sitio aparece la
+   * confirmación. El foco estaba en el botón de enviar, que ya no existe, así
+   * que se caía al `body`: quien navega con teclado o lector de pantalla se
+   * quedaba sin saber ni dónde está ni que se ha enviado nada. Se lleva el foco
+   * al titular de la confirmación.
+   */
+  useEffect(() => {
+    if (status === 'success') confirmacion.current?.focus()
+  }, [status])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -38,7 +50,7 @@ export function ContactForm() {
 
   if (status === 'success') {
     return (
-      <div className="ng-card p-8 text-center">
+      <div className="ng-card p-8 text-center" role="status" aria-live="polite">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full
                       bg-emerald-500/10 dark:bg-emerald-500/20
                       flex items-center justify-center">
@@ -46,7 +58,13 @@ export function ContactForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold mb-2 text-slate-800 dark:text-slate-100">Consulta recibida</h3>
+        <h3
+          ref={confirmacion}
+          tabIndex={-1}
+          className="text-lg font-semibold mb-2 text-slate-800 dark:text-slate-100 focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-4"
+        >
+          Consulta recibida
+        </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Te responderemos en menos de 24 horas con una propuesta detallada.
         </p>
@@ -64,11 +82,12 @@ export function ContactForm() {
     <div className="ng-card p-8">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
+          <label htmlFor="nombre" className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
             Nombre
           </label>
           <input
             type="text"
+            id="nombre"
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
@@ -79,11 +98,12 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
+          <label htmlFor="email" className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
             Email
           </label>
           <input
             type="email"
+            id="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
@@ -94,11 +114,12 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
+          <label htmlFor="tipo_negocio" className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
             Tipo de negocio
           </label>
           <input
             type="text"
+            id="tipo_negocio"
             name="tipo_negocio"
             value={formData.tipo_negocio}
             onChange={handleChange}
@@ -109,10 +130,11 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
+          <label htmlFor="mensaje" className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 ml-1">
             Descripción del proyecto
           </label>
           <textarea
+            id="mensaje"
             name="mensaje"
             value={formData.mensaje}
             onChange={handleChange}
@@ -123,7 +145,7 @@ export function ContactForm() {
         </div>
 
         {status === 'error' && (
-          <p className="text-red-500 text-sm px-1">{errorMsg}</p>
+          <p role="alert" className="text-red-600 dark:text-red-400 text-sm px-1">{errorMsg}</p>
         )}
 
         <button

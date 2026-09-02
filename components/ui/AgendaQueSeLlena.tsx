@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import gsap from 'gsap'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 
 /**
  * La agenda que se llena sola.
@@ -17,8 +16,14 @@ import gsap from 'gsap'
  *    generarlo dos veces.
  *  - Se puede parar. Un vídeo en bucle no se para nunca.
  *
- * Rendimiento: la animación solo corre mientras el bloque está en pantalla, y
- * no arranca si el usuario ha pedido menos movimiento.
+ * Por qué ya no usa GSAP: lo único que hacía aquí era encender seis rectángulos
+ * en fila y contar de cero a seis. Eso es un contador y seis transiciones CSS.
+ * Era la última importación de GSAP que quedaba en el proyecto, y quitarla saca
+ * la librería entera —unos 28 KB comprimidos— del paquete que descarga todo el
+ * mundo al abrir la portada.
+ *
+ * Rendimiento: la cuenta solo avanza mientras el bloque está en pantalla, y no
+ * arranca si el usuario ha pedido menos movimiento.
  */
 
 const HUECOS = [
@@ -35,54 +40,50 @@ const ALTO = 46
 const SEP_X = 12
 const SEP_Y = 12
 
+/** Lo que tardaba cada reserva en aparecer con la línea de tiempo anterior. */
+const PASO_MS = 420
+/** La pausa con la agenda llena antes de volver a empezar. */
+const ESPERA_MS = 1600
+
 export function AgendaQueSeLlena() {
-  const raiz = useRef<SVGSVGElement>(null)
+  // Cuántos huecos están reservados ahora mismo. Es el único estado que hay.
+  const [llenos, setLlenos] = useState(0)
+  const [visible, setVisible] = useState(false)
+  const [raiz, setRaiz] = useState<SVGSVGElement | null>(null)
+
+  const quieto = useMenosMovimiento()
+  // Sin movimiento se pinta el estado final —la agenda llena— y no se anima
+  // nada. Se entiende igual, y no hace falta tocar el estado para conseguirlo.
+  const mostrados = quieto ? HUECOS.length : llenos
+
+  // Fuera de pantalla no tiene sentido gastar.
+  useEffect(() => {
+    if (!raiz || quieto) return
+    const obs = new IntersectionObserver(
+      ([e]) => setVisible(e.isIntersecting),
+      { threshold: 0.25 }
+    )
+    obs.observe(raiz)
+    return () => obs.disconnect()
+  }, [raiz, quieto])
 
   useEffect(() => {
-    const el = raiz.current
-    if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // Estado final: la agenda llena. Se entiende igual, sin movimiento.
-      gsap.set(el.querySelectorAll('.hueco-lleno'), { opacity: 1, scale: 1 })
-      gsap.set(el.querySelector('.contador'), { textContent: '6' })
-      return
-    }
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ repeat: -1, repeatDelay: 1.6, paused: true })
-
-      tl.set('.hueco-lleno', { opacity: 0, scale: 0.9, transformOrigin: 'center' })
-        .set('.marca-ok', { opacity: 0, scale: 0.4, transformOrigin: 'center' })
-        .set('.contador', { textContent: '0' })
-
-      HUECOS.forEach((_, i) => {
-        tl.to(`.hueco-lleno-${i}`, { opacity: 1, scale: 1, duration: 0.34, ease: 'back.out(2)' }, i * 0.42)
-          .to(`.marca-ok-${i}`, { opacity: 1, scale: 1, duration: 0.26, ease: 'back.out(3)' }, i * 0.42 + 0.14)
-          .to('.contador', {
-            duration: 0.3,
-            snap: { textContent: 1 },
-            textContent: String(i + 1),
-          }, i * 0.42 + 0.1)
-      })
-
-      // Solo se anima mientras se ve: fuera de pantalla no tiene sentido gastar.
-      const obs = new IntersectionObserver(
-        ([e]) => (e.isIntersecting ? tl.play() : tl.pause()),
-        { threshold: 0.25 }
-      )
-      obs.observe(el)
-      return () => obs.disconnect()
-    }, el)
-
-    return () => ctx.revert()
-  }, [])
+    if (!visible || quieto) return
+    // Al llegar arriba se espera con la agenda llena y se vuelve a cero.
+    const espera = llenos >= HUECOS.length
+    const id = setTimeout(
+      () => setLlenos((n) => (n >= HUECOS.length ? 0 : n + 1)),
+      espera ? ESPERA_MS : PASO_MS
+    )
+    return () => clearTimeout(id)
+  }, [visible, quieto, llenos])
 
   const anchoTotal = ANCHO * 3 + SEP_X * 2
   const altoTotal = ALTO * 2 + SEP_Y + 44
 
   return (
     <svg
-      ref={raiz}
+      ref={setRaiz}
       viewBox={`0 0 ${anchoTotal} ${altoTotal}`}
       className="w-full max-w-md mx-auto"
       role="img"
@@ -101,10 +102,10 @@ export function AgendaQueSeLlena() {
         x={anchoTotal}
         y="18"
         textAnchor="end"
-        className="contador fill-[var(--accent)]"
+        className="fill-[var(--accent)]"
         style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-geist-mono), monospace' }}
       >
-        0
+        {mostrados}
       </text>
 
       {HUECOS.map((h, i) => {
@@ -127,7 +128,7 @@ export function AgendaQueSeLlena() {
             </text>
 
             {/* Hueco ocupado: aparece al reservarse */}
-            <g className={`hueco-lleno hueco-lleno-${i}`}>
+            <g className="hueco-lleno" data-lleno={i < mostrados || undefined}>
               <rect
                 x={x} y={y} width={ANCHO} height={ALTO} rx="12"
                 className="fill-[var(--accent)]"
@@ -148,7 +149,7 @@ export function AgendaQueSeLlena() {
                 {h.hora}
               </text>
               <path
-                className={`marca-ok marca-ok-${i} stroke-[var(--accent)]`}
+                className="marca-ok stroke-[var(--accent)]"
                 d={`M ${x + ANCHO - 30} ${y + 23} l 6 6 l 12 -13`}
                 fill="none"
                 strokeWidth="2.5"
@@ -161,4 +162,37 @@ export function AgendaQueSeLlena() {
       })}
     </svg>
   )
+}
+
+/**
+ * ¿El sistema pide menos movimiento?
+ *
+ * Con `useSyncExternalStore` en vez de un `useState` dentro de un `useEffect`:
+ * el valor se lee en el primer render en lugar de provocar un segundo render
+ * en cascada, en el servidor devuelve `false` sin tocar `window`, y si alguien
+ * cambia la preferencia con la página abierta, se entera.
+ *
+ * Las tres funciones viven aquí fuera, no dentro del hook, y esto importa: React
+ * usa la identidad de `suscribir` como dependencia de su efecto interno. Creadas
+ * en cada llamada, cada render daba de baja y volvía a dar de alta el listener
+ * —y este componente re-renderiza cada 420 ms mientras la agenda se llena—.
+ *
+ * El nombre del hook empieza por `use` porque React exige esa convención para
+ * poder comprobar sus reglas; de ahí que rompa el castellano del resto.
+ */
+const consulta =
+  typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null
+
+const suscribir = (avisar: () => void) => {
+  consulta?.addEventListener('change', avisar)
+  return () => consulta?.removeEventListener('change', avisar)
+}
+
+const leer = () => consulta?.matches ?? false
+const leerEnServidor = () => false
+
+function useMenosMovimiento() {
+  return useSyncExternalStore(suscribir, leer, leerEnServidor)
 }

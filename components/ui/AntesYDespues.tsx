@@ -137,7 +137,7 @@ export function AntesYDespues({
               {barra.dominio}
             </span>
             <a href={barra.href} target="_blank" rel="noopener noreferrer"
-               className="shrink-0 font-mono text-xs text-[var(--accent)] hover:underline underline-offset-4">
+               className="shrink-0 font-mono text-xs text-[var(--accent-edge)] dark:text-[var(--accent)] hover:underline underline-offset-4">
               Abrir ↗
             </a>
           </div>

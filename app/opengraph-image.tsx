@@ -35,7 +35,6 @@ export default function OpenGraphImage() {
       >
         {/* Símbolo + wordmark: neumor▪ / STUDIO, el mismo del pie de la web */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={logoSrc}
             alt=""

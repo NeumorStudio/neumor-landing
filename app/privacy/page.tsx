@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { Navbar } from "@/components/ui/Navbar";
 import { NeumorfSection } from "@/components/ui/NeumorfSection";
 import { NeumorfCard } from "@/components/ui/NeumorfCard";
+
+export const metadata: Metadata = {
+  title: "Política de privacidad | NeumorStudio",
+  description: "Cómo NeumorStudio recoge, usa y conserva los datos que llegan por el formulario de contacto.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

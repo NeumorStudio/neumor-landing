@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'NeumorStudio - Diseño que conecta',
+    name: 'NeumorStudio — software a medida para negocios',
     short_name: 'NeumorStudio',
-    description: 'Webs con panel propio, leads centralizados y automatizaciones. Diseño neumórfico profesional.',
+    description: 'Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación y atención automática.',
     start_url: '/',
     display: 'standalone',
     background_color: '#12151c',
@@ -31,22 +31,6 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
-      },
-    ],
-    screenshots: [
-      {
-        src: '/screenshots/desktop.png',
-        sizes: '1920x1080',
-        type: 'image/png',
-        form_factor: 'wide',
-        label: 'NeumorStudio Desktop',
-      },
-      {
-        src: '/screenshots/mobile.png',
-        sizes: '750x1334',
-        type: 'image/png',
-        form_factor: 'narrow',
-        label: 'NeumorStudio Mobile',
       },
     ],
   }

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Material de marketing: se trabaja en local, no es parte del proyecto web
+/marketing

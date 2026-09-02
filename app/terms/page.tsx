@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { Navbar } from "@/components/ui/Navbar";
 import { NeumorfSection } from "@/components/ui/NeumorfSection";
 import { NeumorfCard } from "@/components/ui/NeumorfCard";
+
+export const metadata: Metadata = {
+  title: "Términos del servicio | NeumorStudio",
+  description: "Condiciones bajo las que NeumorStudio presta sus servicios de desarrollo de software a medida.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   return (

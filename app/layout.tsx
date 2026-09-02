@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeContext";
+import { contacto, sitio } from "@/lib/content/marca";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +18,24 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
 });
+
+/**
+ * Quiénes somos, para una máquina.
+ *
+ * Solo `Organization`, y solo con datos que ya están en `marca.ts`. No hay
+ * `LocalBusiness` porque no tenemos dirección ni teléfono publicados y
+ * rellenarlo con datos de adorno es justo lo que Google penaliza; no hay
+ * `FAQPage` porque no hay preguntas frecuentes visibles que respaldarlo.
+ */
+const organizacion = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'NeumorStudio',
+  url: sitio.url,
+  logo: `${sitio.url}/images/logo-mark.png`,
+  email: contacto.email,
+  sameAs: [contacto.redes.instagram, contacto.redes.tiktok, contacto.redes.x],
+}
 
 const setInitialTheme = `
 (() => {
@@ -56,10 +75,12 @@ export const metadata: Metadata = {
   // Sin metadataBase, Next resuelve las imágenes sociales contra localhost:3000
   // y la previsualización al compartir el enlace sale rota en producción.
   metadataBase: new URL('https://neumorstudio.com'),
+  // Sin canonical explícito no hay nada que diga cuál es la buena cuando
+  // llega tráfico con ?utm_*, con www o con barra final. Next no lo pone solo.
+  alternates: { canonical: '/' },
   title: "NeumorStudio | Software a medida para negocios",
   description:
     "Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación de clientes y atención automática. Aplicaciones a medida con su panel, entregadas funcionando.",
-  keywords: ['software a medida', 'aplicaciones web', 'panel de gestion', 'sistema de reservas', 'automatizacion para negocios', 'desarrollo web para empresas'],
   authors: [{ name: 'NeumorStudio' }],
   creator: 'NeumorStudio',
   publisher: 'NeumorStudio',
@@ -114,6 +135,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizacion) }}
+        />
         <script dangerouslySetInnerHTML={{ __html: setInitialTheme }} />
         <script dangerouslySetInnerHTML={{ __html: registerSW }} />
         <ThemeProvider>

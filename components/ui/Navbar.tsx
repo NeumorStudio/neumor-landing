@@ -27,6 +27,10 @@ function ThemeButton() {
   return (
     <button
       onClick={() => setIsDark(!isDark)}
+      // El único indicador de estado era que el `aria-label` cambiaba de texto.
+      // `aria-pressed` lo dice de forma que cualquier lector de pantalla lo
+      // anuncia como lo que es: un interruptor que está activado o no.
+      aria-pressed={isDark}
       className="ng-raised w-10 h-10 !p-0 flex items-center justify-center text-[var(--ink-soft)]"
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
     >
@@ -119,10 +123,13 @@ export function Navbar() {
     };
   }, []);
 
-  const scrollToSection = (href: string) => {
-    document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
-    setIsMobileMenuOpen(false);
-  };
+  // Los enlaces del menú son enlaces. Antes eran `<button>` con un
+  // `scrollIntoView`, lo que significaba que no se podían abrir en otra
+  // pestaña, no se copiaban con el botón derecho y un lector de pantalla los
+  // anunciaba como botones que no llevan a ninguna parte. El desplazamiento
+  // suave y el hueco bajo la barra ya están resueltos en el CSS, así que el
+  // JavaScript solo tiene que cerrar el menú móvil al elegir.
+  const cerrarMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <nav className={`ng-navbar ${isScrolled ? "scrolled" : ""}`}>
@@ -155,27 +162,24 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-5">
           {navLinks.map((link) => (
-            <button
+            <a
               key={link.href}
-              onClick={() => scrollToSection(link.href)}
+              href={link.href}
               className={`nav-item text-sm text-[var(--ink-soft)] relative z-10 ${
                 activa === link.href ? "activa" : ""
               }`}
-              aria-current={activa === link.href ? "true" : undefined}
+              aria-current={activa === link.href ? "location" : undefined}
             >
               {link.label}
               {activa === link.href && <span className="punto-activo" aria-hidden="true" />}
-            </button>
+            </a>
           ))}
 
           <ThemeButton />
 
-          <button
-            onClick={() => scrollToSection("#contacto")}
-            className="ng-btn-primary text-sm"
-          >
+          <a href="#contacto" className="ng-btn-primary text-sm">
             Solicitar propuesta
-          </button>
+          </a>
         </div>
 
         {/* Mobile: toggle + menu button */}
@@ -183,8 +187,10 @@ export function Navbar() {
           <ThemeButton />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="menu-movil"
+            aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
             className="p-2 rounded-lg text-[var(--ink-soft)] relative z-10"
-            aria-label="Abrir menú"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isMobileMenuOpen ? (
@@ -197,8 +203,16 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Menú móvil.
+          Cerrado se colapsa con `max-height`, no con `display: none`, para que
+          la transición se vea. El efecto secundario era que sus botones seguían
+          en el orden de tabulación: con el menú cerrado se podía tabular a
+          enlaces invisibles y el foco desaparecía de la pantalla. `inert` los
+          saca del todo —del tabulador y del árbol de accesibilidad— sin tocar
+          la animación. */}
       <div
+        id="menu-movil"
+        inert={!isMobileMenuOpen}
         className={`
           md:hidden overflow-hidden transition-all duration-300 ease-out
           ${isMobileMenuOpen ? "max-h-80 opacity-100 mt-2" : "max-h-0 opacity-0"}
@@ -206,21 +220,23 @@ export function Navbar() {
       >
         <div className="mx-4 p-4 ng-card space-y-1">
           {navLinks.map((link) => (
-            <button
+            <a
               key={link.href}
-              onClick={() => scrollToSection(link.href)}
+              href={link.href}
+              onClick={cerrarMenu}
               className="block w-full text-left px-4 py-2 text-sm text-[var(--ink-soft)]"
             >
               {link.label}
-            </button>
+            </a>
           ))}
           <div className="pt-3 px-2">
-            <button
-              onClick={() => scrollToSection("#contacto")}
+            <a
+              href="#contacto"
+              onClick={cerrarMenu}
               className="ng-btn-primary text-sm w-full justify-center"
             >
               Solicitar propuesta
-            </button>
+            </a>
           </div>
         </div>
       </div>

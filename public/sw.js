@@ -7,12 +7,17 @@
 // estrategia de abajo es stale-while-revalidate, así que sin este cambio
 // serviría el logo viejo desde caché al menos una visita más.
 // v3 (29-07-2026): el símbolo pasa a ser el monograma NS.
-const CACHE_NAME = 'neumorstudio-v3'
-const OFFLINE_URL = '/'
+const CACHE_NAME = 'neumorstudio-v4'
+const OFFLINE_URL = '/offline.html'
 
-// Assets a pre-cachear
+// Assets a pre-cachear.
+//
+// La portada NO entra aquí. Se precacheaba, y como este fichero solo se
+// reinstala cuando cambia CACHE_NAME a mano, esa copia podía tener meses y
+// referirse a chunks de Next ya borrados: sin red, pantalla en blanco. El
+// fallback ahora es `offline.html`, que no depende de ningún chunk.
 const PRECACHE_ASSETS = [
-  '/',
+  '/offline.html',
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
@@ -91,7 +96,7 @@ self.addEventListener('fetch', (event) => {
     request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'font' ||
-    url.pathname.match(/\.(mp4|webm|png|jpg|jpeg|gif|svg|ico|woff2?)$/i)
+    url.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff2?)$/i)
   ) {
     event.respondWith(
       (async () => {

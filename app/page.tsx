@@ -1,19 +1,22 @@
-'use client'
-
-import { useEffect, useRef } from 'react'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { Proyectos } from "@/components/ui/Proyectos"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
 import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Draggable } from 'gsap/Draggable'
-import { InertiaPlugin } from 'gsap/InertiaPlugin'
-import Matter from 'matter-js'
+import { MesaDeTaller } from "@/components/ui/MesaDeTaller"
+import { ActivarReveals } from "@/components/ui/ActivarReveals"
 
-gsap.registerPlugin(ScrollTrigger, Draggable, InertiaPlugin)
+/**
+ * La portada se renderiza en el servidor.
+ *
+ * Era `'use client'` entera: seiscientas líneas, de las cuales el 90 % es
+ * marcado que no cambia nunca —el titular, las tarjetas, los valores, el pie—
+ * viajaban dos veces al navegador, una como HTML y otra como JavaScript para
+ * hidratar. Ahora solo son de cliente las cuatro piezas que de verdad
+ * necesitan serlo: la barra, la mesa del hero, el selector de proyectos y el
+ * formulario.
+ */
 
 // Piezas de la mesa de taller del hero
 const toyPieces = [
@@ -22,7 +25,7 @@ const toyPieces = [
   { label: 'bot', lab: false },
   { label: 'api', lab: false },
   { label: 'juego', lab: true },
-]
+] as const
 
 // Lo que incluye el producto webs+panel.
 // Los iconos salen todos de la misma rejilla generada de una vez, así que
@@ -36,41 +39,25 @@ const productFeatures = [
   { title: 'Automatización', copy: 'Respuestas y recordatorios sin intervenir.', icono: 'automatizacion' },
 ]
 
-/**
- * Aquí había dos vídeos de stock rotulados «La web pública» y «El panel de
- * gestión». Se leían como trabajo nuestro sin serlo, y ya no hacen falta:
- * Salonio está en producción y la sección de abajo enseña el producto real.
- */
-
-
 const nichos = [
   'Restaurantes', 'Salones', 'Clínicas',
   'Gimnasios', 'Tiendas', 'Reformas'
 ]
 
+// Solo los rótulos: la sección los pinta como etiquetas y nada más. Antes cada
+// uno arrastraba un `status` y un `copy` que dejaron de renderizarse cuando la
+// sección se redujo a una línea, y seguían aquí sin que nadie los leyera.
 const labItems = [
-  {
-    status: 'en desarrollo',
-    title: 'Prototipos interactivos',
-    copy: 'Mecánicas y experiencias interactivas que evaluamos internamente antes de convertirlas en producto.',
-  },
-  {
-    status: 'en validación',
-    title: 'Componentes de interfaz',
-    copy: 'Elementos de interfaz propios que diseñamos, probamos y reutilizamos en los proyectos de cliente.',
-  },
-  {
-    status: 'en producción',
-    title: 'Herramientas internas',
-    copy: 'Software que automatiza parte de nuestro propio flujo de trabajo y madura hasta convertirse en producto.',
-  },
+  'Prototipos interactivos',
+  'Componentes de interfaz',
+  'Herramientas internas',
 ]
 
 const processSteps = [
   {
     day: '1',
     title: 'Análisis',
-    copy: 'Estudiamos tu negocio y definimos el alcance: funcionalidades, plazos y presupuesto cerrado.',
+    copy: 'Estudiamos tu negocio y definimos el alcance: qué entra, qué no, y con qué presupuesto cerrado.',
   },
   {
     day: '2',
@@ -85,180 +72,20 @@ const processSteps = [
 ]
 
 export default function Home() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const contactRef = useRef<HTMLDivElement>(null)
-  const trayRef = useRef<HTMLDivElement>(null)
-
-  // ========== MESA DE TALLER: al primer toque las piezas cobran físicas ==========
-  useEffect(() => {
-    const tray = trayRef.current
-    if (!tray) return
-
-    // Arrastre suave inicial; muere en cuanto entran las físicas
-    const draggables = Draggable.create('.toy-piece', {
-      type: 'x,y',
-      bounds: tray,
-      inertia: true,
-      edgeResistance: 0.7,
-      onPress() { this.target.classList.add('dragging') },
-      onRelease() { this.target.classList.remove('dragging') },
-    })
-
-    let engine: Matter.Engine | null = null
-    let raf = 0
-    let releaseOutside: (() => void) | null = null
-
-    const activatePhysics = () => {
-      draggables.forEach((d) => d.kill())
-
-      const trayRect = tray.getBoundingClientRect()
-      const w = trayRect.width
-      const h = trayRect.height
-      engine = Matter.Engine.create({ enableSleeping: true })
-      engine.gravity.y = 1.2
-
-      // ponytail: paredes fijadas al tamaño actual; un resize con físicas activas las desajusta
-      const grosor = 200
-      Matter.Composite.add(engine.world, [
-        Matter.Bodies.rectangle(w / 2, h + grosor / 2, w * 2, grosor, { isStatic: true }),
-        Matter.Bodies.rectangle(w / 2, -grosor / 2, w * 2, grosor, { isStatic: true }),
-        Matter.Bodies.rectangle(-grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
-        Matter.Bodies.rectangle(w + grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
-      ])
-
-      const items = Array.from(tray.querySelectorAll<HTMLElement>('.toy-piece')).map((el) => {
-        const r = el.getBoundingClientRect()
-        const cx = r.left - trayRect.left + r.width / 2
-        const cy = r.top - trayRect.top + r.height / 2
-        // Centro de la pieza en el flujo, sin el transform que dejó el arrastre
-        const baseX = cx - (Number(gsap.getProperty(el, 'x')) || 0)
-        const baseY = cy - (Number(gsap.getProperty(el, 'y')) || 0)
-        const body = Matter.Bodies.rectangle(cx, cy, r.width, r.height, {
-          chamfer: { radius: 13 },
-          restitution: 0.25,
-          friction: 0.6,
-          frictionAir: 0.02,
-        })
-        Matter.Composite.add(engine!.world, body)
-        return { el, body, baseX, baseY }
-      })
-
-      // Agarrar, lanzar y apilar con el puntero
-      const mouse = Matter.Mouse.create(tray)
-      const mouseConstraint = Matter.MouseConstraint.create(engine, {
-        mouse,
-        constraint: { stiffness: 0.2, damping: 0.1 },
-      })
-      Matter.Composite.add(engine.world, mouseConstraint)
-
-      Matter.Events.on(mouseConstraint, 'startdrag', (e) => {
-        const body = (e as unknown as { body?: Matter.Body }).body
-        items.find((i) => i.body === body)?.el.classList.add('dragging')
-      })
-      Matter.Events.on(mouseConstraint, 'enddrag', () => {
-        items.forEach((i) => i.el.classList.remove('dragging'))
-      })
-
-      // Si el puntero se suelta fuera de la bandeja, la pieza quedaría agarrada
-      releaseOutside = () => { mouse.button = -1 }
-      window.addEventListener('pointerup', releaseOutside)
-
-      let last = performance.now()
-      const step = (now: number) => {
-        Matter.Engine.update(engine!, Math.min(now - last, 33))
-        last = now
-        for (const { el, body, baseX, baseY } of items) {
-          el.style.transform =
-            `translate(${body.position.x - baseX}px, ${body.position.y - baseY}px) rotate(${body.angle}rad)`
-        }
-        raf = requestAnimationFrame(step)
-      }
-      raf = requestAnimationFrame(step)
-    }
-
-    const onFirstTouch = (e: PointerEvent) => {
-      if (!(e.target as Element).closest('.toy-piece')) return
-      tray.removeEventListener('pointerdown', onFirstTouch, true)
-      activatePhysics()
-    }
-    // Con reduced motion se quedan en arrastre simple, sin caída
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      tray.addEventListener('pointerdown', onFirstTouch, true)
-    }
-
-    return () => {
-      tray.removeEventListener('pointerdown', onFirstTouch, true)
-      if (releaseOutside) window.removeEventListener('pointerup', releaseOutside)
-      cancelAnimationFrame(raf)
-      if (engine) Matter.Engine.clear(engine)
-      draggables.forEach((d) => d.kill())
-    }
-  }, [])
-
-  // ========== ENTRADAS Y REVEALS ==========
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
-
-    const ctx = gsap.context(() => {
-      // Hero: una sola entrada orquestada
-      gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
-        .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
-        .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
-        .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.5 }, '-=0.35')
-        .fromTo('.toy-tray', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
-        .fromTo('.toy-piece', { opacity: 0, scale: 0.6, y: -40 }, { opacity: 1, scale: 1, y: 0, stagger: 0.07, duration: 0.6, ease: 'back.out(2)' }, '-=0.4')
-
-      // Reveal genérico por sección
-      gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
-        gsap.fromTo(
-          el.children,
-          { opacity: 0, y: 28 },
-          {
-            opacity: 1,
-            y: 0,
-            stagger: 0.08,
-            duration: 0.7,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top 80%',
-              toggleActions: 'play none none none',
-            },
-          }
-        )
-      })
-
-      // Pills de nichos
-      gsap.fromTo(
-        '.nicho-pill',
-        { opacity: 0, y: 20, scale: 0.9 },
-        {
-          opacity: 1, y: 0, scale: 1,
-          stagger: 0.05, duration: 0.5, ease: 'back.out(1.7)',
-          scrollTrigger: {
-            trigger: '.nichos-section',
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
-        }
-      )
-    }, containerRef)
-
-    return () => ctx.revert()
-  }, [])
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' })
-  }, [])
-
   return (
-    <div ref={containerRef} className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden">
+      {/* Primer tabulador de la página. Sin esto hay que pasar por los cuatro
+          enlaces de la barra, el conmutador de tema y el botón de propuesta
+          antes de tocar el contenido, en cada visita. */}
+      <a href="#contenido" className="ng-saltar">
+        Saltar al contenido
+      </a>
+
       <BrilloLiquido />
+      <ActivarReveals />
       <Navbar />
 
-      <main className="min-h-screen pt-20">
+      <main id="contenido" className="min-h-screen pt-20">
         {/* ========== HERO: MANIFIESTO + MESA DE TALLER ========== */}
         <NeumorfSection className="py-14 md:py-20 relative">
           <div className="hero-fondo" aria-hidden="true" />
@@ -289,30 +116,23 @@ export default function Home() {
                 className="hero-cta ng-btn-primary"
               >
                 Ver uno funcionando
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </a>
-              <button
-                onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
-                className="hero-cta ng-raised px-6 py-3 text-sm font-medium"
-              >
+              {/* Un enlace, no un botón con `onClick`. Hace exactamente lo mismo
+                  —el desplazamiento suave y el hueco bajo la barra ya están en
+                  el CSS— sin necesitar una línea de JavaScript, y de paso se
+                  puede abrir en otra pestaña y se anuncia como lo que es. */}
+              <a href="#contacto" className="hero-cta ng-raised px-6 py-3 text-sm font-medium">
                 Cuéntanos tu caso
-              </button>
+              </a>
             </div>
 
-            {/* Mesa de taller: las piezas se arrastran de verdad */}
-            {/* La mesa de piezas pasa a ser cristal: es lo único que flota sobre
-                el fondo del hero y por tanto el sitio natural del material.
-                Su contenido —las piezas arrastrables— sigue intacto. */}
-            <div ref={trayRef} className="toy-tray lq lq-vivo h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
-              {toyPieces.map((piece) => (
-                <span key={piece.label} className="toy-piece" data-lab={piece.lab || undefined}>
-                  <span className="toy-dot" />
-                  {piece.label}
-                </span>
-              ))}
-            </div>
+            {/* Mesa de taller: las piezas se arrastran de verdad. Es la única
+                parte del hero que necesita JavaScript, y su motor no se descarga
+                hasta que alguien se acerca a tocarla. */}
+            <MesaDeTaller piezas={toyPieces} />
           </div>
         </NeumorfSection>
 
@@ -358,8 +178,12 @@ export default function Home() {
 
           <div className="reveal ng-card p-6 md:p-10">
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="ng-badge text-emerald-600 dark:text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              {/* `emerald-600` sobre esta superficie se quedaba en 2,95:1 — por
+                  debajo incluso del mínimo de un elemento de interfaz. El tono
+                  oscuro llega a 6:1 y en modo oscuro se sigue usando el claro,
+                  que allí ya cumplía de sobra. */}
+              <span className="ng-badge text-emerald-800 dark:text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
                 Disponible
               </span>
               <span className="ng-badge text-[var(--ink-soft)]">Panel de gestión</span>
@@ -424,7 +248,7 @@ export default function Home() {
             {marca.valores.map((valor) => (
               <article key={valor.titulo} className="ng-card p-6 flex flex-col gap-2">
                 <h3 className="font-display text-lg font-bold">{valor.titulo}</h3>
-                <p className="font-mono text-xs text-emerald-600 dark:text-emerald-400">
+                <p className="font-mono text-xs text-emerald-800 dark:text-emerald-400">
                   {valor.prueba}
                 </p>
               </article>
@@ -449,6 +273,18 @@ export default function Home() {
           </div>
 
           <Proyectos />
+
+          {/* La prueba acaba de convencer o no va a convencer nunca; es el punto
+              del scroll donde más gente decide. Antes desde aquí solo se podía
+              seguir bajando o volver a la barra. */}
+          <p className="reveal text-center mt-10">
+            <a href="#contacto" className="ng-btn-primary inline-flex">
+              Quiero algo así para mi negocio
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+          </p>
         </NeumorfSection>
 
         {/* ========== EL PROCESO ========== */}
@@ -457,16 +293,19 @@ export default function Home() {
             <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
               Del primer contacto a la entrega
             </h2>
+            {/* Decía "plazos cerrados" y luego no daba ni una fecha en toda la
+                sección. Una promesa que el propio texto no cumple resta más de
+                lo que suma, así que se queda lo que sí se sostiene. */}
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Tres pasos, plazos cerrados y una sola persona con la que hablar
-              durante todo el proyecto.
+              Tres pasos y una sola persona con la que hablar durante todo el
+              proyecto.
             </p>
           </div>
 
           <div className="reveal grid gap-6 md:grid-cols-3">
             {processSteps.map((step) => (
               <div key={step.day} className="ng-card p-6">
-                <span className="step-key mb-4">{step.day}</span>
+                <span className="step-key mb-4" aria-hidden="true">{step.day}</span>
                 <h3 className="font-display text-lg font-bold mt-4 mb-2">
                   {step.title}
                 </h3>
@@ -494,8 +333,8 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               {labItems.map((item) => (
-                <span key={item.title} className="ng-raised px-4 py-2 text-sm cursor-default">
-                  {item.title}
+                <span key={item} className="ng-raised px-4 py-2 text-sm cursor-default">
+                  {item}
                 </span>
               ))}
             </div>
@@ -503,7 +342,7 @@ export default function Home() {
         </NeumorfSection>
 
         {/* ========== CONTACTO ========== */}
-        <div ref={contactRef} id="contacto">
+        <div id="contacto">
           <NeumorfSection className="pb-24">
             <div className="reveal grid gap-12 md:grid-cols-2 items-start">
               <div className="space-y-6">
@@ -528,8 +367,8 @@ export default function Home() {
                     'Si no te encajamos, te lo decimos',
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-[var(--ink-soft)]">
-                      <span className="w-5 h-5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="w-5 h-5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center shrink-0">
+                        <svg className="w-3 h-3 text-emerald-600 dark:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       </span>
@@ -563,7 +402,11 @@ export default function Home() {
               </span>
             </div>
 
-            <span>&copy; {new Date().getFullYear()} NeumorStudio — Desarrollo de software</span>
+            {/* Sin año. La página es estática, así que `new Date()` se evaluaba
+                al compilar y se quedaba congelado en el año del último
+                despliegue: en enero el pie miente hasta que alguien publica.
+                Un aviso de copyright no necesita fecha para ser válido. */}
+            <span>&copy; NeumorStudio — Desarrollo de software</span>
             <div className="flex gap-3">
               <a
                 href="https://www.instagram.com/neumorstudio/"
@@ -572,7 +415,7 @@ export default function Home() {
                 className="ng-raised w-10 h-10 !p-0 flex items-center justify-center"
                 aria-label="Instagram"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
                 </svg>
               </a>
@@ -583,7 +426,7 @@ export default function Home() {
                 className="ng-raised w-10 h-10 !p-0 flex items-center justify-center"
                 aria-label="TikTok"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
                 </svg>
               </a>
@@ -594,7 +437,7 @@ export default function Home() {
                 className="ng-raised w-10 h-10 !p-0 flex items-center justify-center"
                 aria-label="X"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
