@@ -1,14 +1,13 @@
 /**
- * Genera el símbolo de marca (el monograma NS) en las dos piezas de las que
+ * Genera el símbolo de marca (la N modular) en las dos piezas de las que
  * cuelga todo lo demás:
  *
  *   public/images/logo-mark.png         → navbar e imagen de compartir (esquinas redondeadas)
  *   public/images/logo-mark-square.png  → fuente de los iconos PWA (cuadrado, sin redondear)
  *
- * La fuente es public/images/logo-ns.svg, un único trazo vectorial. Se parte de
- * vector a propósito: la versión anterior del símbolo se recortaba de un PNG y
- * cada tamaño había que rehacerlo a mano. Desde el SVG, cualquier tamaño sale
- * nítido y el color se cambia en una línea.
+ * La fuente es public/images/logo-n.png: el logo con fondo transparente,
+ * a 1024 px. Es un render con volumen y sombras, no un trazo vectorial, así
+ * que se coloca tal cual sobre el fondo oscuro de la marca y no se recolorea.
  *
  * Después de este script hay que ejecutar generate-pwa-icons.mjs, que deriva
  * los nueve iconos y los favicons de logo-mark-square.png.
@@ -24,7 +23,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootDir = join(__dirname, '..')
 
-const SOURCE_SVG = join(rootDir, 'public/images/logo-ns.svg')
+const SOURCE_PNG = join(rootDir, 'public/images/logo-n.png')
 const OUT_DIR = join(rootDir, 'public/images')
 
 const LIENZO = 512
@@ -32,25 +31,17 @@ const LIENZO = 512
 const FONDO = { r: 0x12, g: 0x15, b: 0x1c, alpha: 1 }
 // Proporción del lienzo que ocupa el trazo. Por debajo de 0.6 el símbolo se
 // pierde a tamaño favicon; por encima de 0.7 toca los bordes al redondear.
-const OCUPACION = 0.64
+const OCUPACION = 0.62
 const RADIO = 0.22 * LIENZO
 
-async function trazoBlanco() {
-  const svg = await readFile(SOURCE_SVG, 'utf8')
-  // El SVG viene en negro (#010101). Solo cambia el relleno, nunca la forma.
-  const blanco = svg.replaceAll('#010101', '#FFFFFF').replaceAll('#000000', '#FFFFFF')
-
-  // density alta para que el rasterizado no dependa del tamaño declarado.
-  // trim() recorta el transparente sobrante: el trazo no está centrado dentro
-  // del lienzo original del SVG y sin esto quedaría descentrado.
-  return sharp(Buffer.from(blanco), { density: 600 })
-    .png()
-    .trim()
-    .toBuffer()
+async function simbolo() {
+  // trim() recorta el transparente sobrante para que el símbolo quede
+  // centrado en el lienzo aunque el PNG fuente lleve margen.
+  return sharp(SOURCE_PNG).trim().png().toBuffer()
 }
 
 async function componer({ redondear }) {
-  const trazo = await trazoBlanco()
+  const trazo = await simbolo()
   const { width, height } = await sharp(trazo).metadata()
 
   // Encaja el trazo dentro del cuadrado respetando su proporción.
@@ -121,7 +112,7 @@ async function escribirIco(fuente, destino, tamaños) {
 }
 
 async function main() {
-  console.log('Generando el símbolo de marca desde logo-ns.svg...\n')
+  console.log('Generando el símbolo de marca desde logo-n.png...\n')
 
   const redondeado = await componer({ redondear: true })
   await sharp(redondeado).toFile(join(OUT_DIR, 'logo-mark.png'))

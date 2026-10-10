@@ -136,7 +136,7 @@ export function Navbar() {
           aria-label="NeumorStudio"
           className="ng-wordmark nav-item !py-1.5 font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
-          {/* Símbolo: trazo-n con punto azul */}
+          {/* Símbolo: N modular azul */}
           <Image
             src="/images/logo-mark.png"
             alt=""

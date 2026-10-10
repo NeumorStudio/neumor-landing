@@ -7,7 +7,8 @@
 // estrategia de abajo es stale-while-revalidate, así que sin este cambio
 // serviría el logo viejo desde caché al menos una visita más.
 // v3 (29-07-2026): el símbolo pasa a ser el monograma NS.
-const CACHE_NAME = 'neumorstudio-v3'
+// v4 (10-10-2026): el símbolo pasa a ser la N modular azul.
+const CACHE_NAME = 'neumorstudio-v4'
 const OFFLINE_URL = '/'
 
 // Assets a pre-cachear
