@@ -1,0 +1,67 @@
+// Genera los logos y los iconos a partir del maestro, public/marca/ns-marca.svg.
+// Uso: node scripts/marca/kit.mjs
+import fs from "node:fs";
+import path from "node:path";
+import sharp from "sharp";
+
+const DIR = "public/marca";
+const LADO = 2820;
+const NS_MAESTRO = 0.883; // Alto del NS dentro del lienzo del maestro
+const NS_ICONO = 0.66; // En iconos deja aire y aguanta un recorte redondo
+const NS_FAVICON = 0.82; // A 16 px el aire le quita lectura
+const RADIO = LADO * 0.22;
+
+const NEGRO = "#0B0B0F";
+const BLANCO = "#FFFFFF";
+const AMBAR = "#F2A93B";
+const TECLA_LUZ = "#22242D";
+const TECLA_SOMBRA = "#15161C";
+
+const d = fs.readFileSync(path.join(DIR, "ns-marca.svg"), "utf8").match(/ d="([^"]+)"/)[1];
+
+const envolver = (dentro) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${LADO} ${LADO}" role="img" aria-label="NeumorStudio">${dentro}</svg>\n`;
+
+function ns(fill, parte = NS_MAESTRO, atributos = "") {
+  const k = (parte / NS_MAESTRO).toFixed(4);
+  const escala = parte === NS_MAESTRO ? "" : ` transform="translate(${LADO / 2} ${LADO / 2}) scale(${k}) translate(${-LADO / 2} ${-LADO / 2})"`;
+  return `<path${escala} fill="${fill}" fill-rule="evenodd" ${atributos}d="${d}"/>`;
+}
+
+// La tecla: luz arriba a la izquierda, como las piezas de la web, y el NS con una sombra suave.
+function tecla(radio) {
+  return [
+    `<defs><linearGradient id="tecla" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${TECLA_LUZ}"/><stop offset="1" stop-color="${TECLA_SOMBRA}"/></linearGradient>`,
+    `<filter id="sombra" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${LADO * 0.012}"/></filter></defs>`,
+    `<rect width="${LADO}" height="${LADO}" rx="${radio}" fill="url(#tecla)"/>`,
+    `<g transform="translate(${LADO * 0.008} ${LADO * 0.012})" filter="url(#sombra)" opacity="0.6">${ns("#000000", NS_ICONO)}</g>`,
+    ns(BLANCO, NS_ICONO),
+  ].join("");
+}
+
+const piezas = {
+  "ns-marca-blanco.svg": envolver(ns(BLANCO)),
+  "ns-marca-negro.svg": envolver(ns(NEGRO)),
+  "ns-marca-ambar.svg": envolver(ns(AMBAR)),
+  "ns-icono-oscuro.svg": envolver(tecla(RADIO)),
+  "ns-icono-ambar.svg": envolver(`<rect width="${LADO}" height="${LADO}" rx="${RADIO}" fill="${AMBAR}"/>${ns(NEGRO, NS_ICONO)}`),
+};
+for (const [nombre, contenido] of Object.entries(piezas)) fs.writeFileSync(path.join(DIR, nombre), contenido);
+
+// Se rasteriza a cuatro veces el tamaño y se reduce: los bordes salen más limpios.
+async function png(svg, lado, opaco) {
+  const grande = svg.replace("<svg ", `<svg width="${lado * 4}" height="${lado * 4}" `);
+  let imagen = sharp(Buffer.from(grande)).resize(lado, lado, { kernel: "lanczos3" });
+  if (opaco) imagen = imagen.flatten({ background: NEGRO }).removeAlpha();
+  await imagen.png({ compressionLevel: 9 }).toFile(path.join(DIR, `icono-${lado}.png`));
+}
+
+// Favicons: plano, porque a este tamaño el relieve no se ve.
+const favicon = envolver(`<rect width="${LADO}" height="${LADO}" rx="${RADIO}" fill="${NEGRO}"/>${ns(BLANCO, NS_FAVICON)}`);
+for (const lado of [16, 32, 48]) await png(favicon, lado, false);
+
+// Apple, Google y las PWA redondean por su cuenta, y App Store no admite transparencia.
+const cuadrado = envolver(tecla(0));
+for (const lado of [180, 192, 512, 1024]) await png(cuadrado, lado, true);
+
+console.log("Kit generado en", DIR);
