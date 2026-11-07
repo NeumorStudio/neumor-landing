@@ -21,9 +21,8 @@ const bricolage = Bricolage_Grotesque({
 const setInitialTheme = `
 (() => {
   try {
-    const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = stored === 'dark' || (!stored && prefersDark);
+    // El oscuro es la cara de la marca: solo se abre en claro si alguien lo eligió.
+    const isDark = localStorage.getItem('theme') !== 'light';
     document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
   } catch (err) {
     console.warn('No se pudo leer el tema inicial', err);
@@ -46,10 +45,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#e9edf4' },
-    { media: '(prefers-color-scheme: dark)', color: '#12151c' },
-  ],
+  themeColor: '#17181f',
 };
 
 export const metadata: Metadata = {
@@ -110,7 +106,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} antialiased`}
       >

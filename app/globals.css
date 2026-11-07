@@ -7,35 +7,40 @@
 @import "./tactile.css";
 
 :root {
-  /* Paleta — porcelana fría heredera del gris neumor */
-  --background: #e9edf4;
-  --bg-deep: #dfe4ee;
-  --surface: #f4f6fb;
-  --foreground: #161a22;
-  --ink-soft: #4a5264;
+  /* Paleta — porcelana cálida, como el NS en 3D. El tema claro es el secundario:
+     la cara de la marca es el oscuro (MARCA.md). */
+  --background: #eeede9;
+  --bg-deep: #e4e2dd;
+  --surface: #f8f7f4;
+  --foreground: #1a1a20;
+  --ink-soft: #55545f;
 
   /* Bordes y sombras de las "teclas" */
-  --edge: #c7cfde;
+  --edge: #cfcdc6;
   --edge-border: rgba(255, 255, 255, 0.75);
-  --ambient: rgba(22, 26, 34, 0.07);
-  --engrave: rgba(22, 26, 34, 0.1);
+  --ambient: rgba(26, 26, 32, 0.07);
+  --engrave: rgba(26, 26, 32, 0.1);
   --engrave-light: rgba(255, 255, 255, 0.7);
 
-  /* Tarjetas con volumen (.ng-card): luz arriba, sombra abajo, brillo azul
+  /* Tarjetas con volumen (.ng-card): luz arriba, sombra abajo, brillo ámbar
      en una esquina, como el logo. En claro son sutiles: el blanco ya brilla. */
-  --card-top: #fbfcff;
-  --card-bottom: #e9edf6;
-  --card-shine: rgba(61, 90, 254, 0.07);
+  --card-top: #fcfbf9;
+  --card-bottom: #edebe6;
+  --card-shine: rgba(242, 169, 59, 0.09);
   --card-rim: rgba(255, 255, 255, 0.95);
-  --card-shade: rgba(22, 26, 34, 0.07);
-  --card-drop: rgba(22, 26, 34, 0.14);
+  --card-shade: rgba(26, 26, 32, 0.07);
+  --card-drop: rgba(26, 26, 32, 0.14);
 
-  /* Acento — azul pulsador */
-  --accent: #3d5afe;
-  --accent-edge: #2a3eb1;
-  --accent-glow: rgba(61, 90, 254, 0.22);
+  /* Acento — el ámbar de la luz del logo. Sobre fondo claro #F2A93B no se lee
+     como texto: --accent es un ámbar oscuro para letras y líneas, y --accent-fill
+     es el de verdad, para rellenar botones con --accent-ink encima. */
+  --accent: #96590a;
+  --accent-fill: #f2a93b;
+  --accent-ink: #1a1204;
+  --accent-edge: #b8791f;
+  --accent-glow: rgba(242, 169, 59, 0.3);
 
-  /* Ámbar — reservado para el laboratorio */
+  /* Ámbar del laboratorio: distinto del acento para que se diferencie */
   --amber: #d97706;
 
   /* ===== Liquid Glass =====
@@ -52,44 +57,46 @@
      los lados. Continuo y con variación de intensidad, no con huecos. */
   --lq-spec-tenue: rgba(255, 255, 255, 0.32);
   --lq-bisel-hi: rgba(255, 255, 255, 0.8);
-  --lq-bisel-lo: rgba(20, 25, 40, 0.12);
+  --lq-bisel-lo: rgba(40, 30, 20, 0.12);
   --lq-brillo: rgba(255, 255, 255, 0.4);
-  --lq-sombra: rgba(22, 26, 34, 0.12);
+  --lq-sombra: rgba(26, 26, 32, 0.12);
   /* Respaldo opaco para cuando no hay cristal (ver @supports y
      prefers-reduced-transparency al final del archivo) */
-  --lq-solido: rgba(244, 246, 251, 0.94);
+  --lq-solido: rgba(248, 247, 244, 0.94);
 }
 
 .dark {
-  --background: #12151c;
-  --bg-deep: #0c0e14;
-  --surface: #1a1e28;
-  --foreground: #e8ebf3;
-  --ink-soft: #9aa3b5;
+  --background: #17181f;
+  --bg-deep: #121319;
+  --surface: #1e2028;
+  --foreground: #f3f2ef;
+  --ink-soft: #afaeb9;
 
-  --edge: #07080c;
+  --edge: #0b0c10;
   --edge-border: rgba(255, 255, 255, 0.07);
   --ambient: rgba(0, 0, 0, 0.35);
   --engrave: rgba(0, 0, 0, 0.5);
   --engrave-light: rgba(255, 255, 255, 0.04);
 
-  --card-top: #232838;
-  --card-bottom: #151922;
-  --card-shine: rgba(92, 119, 255, 0.13);
+  --card-top: #24262f;
+  --card-bottom: #191a21;
+  --card-shine: rgba(242, 169, 59, 0.1);
   --card-rim: rgba(255, 255, 255, 0.10);
   --card-shade: rgba(0, 0, 0, 0.45);
   --card-drop: rgba(0, 0, 0, 0.55);
 
-  --accent: #5c77ff;
-  --accent-edge: #2a3eb1;
-  --accent-glow: rgba(92, 119, 255, 0.25);
+  --accent: #f2a93b;
+  --accent-fill: #f2a93b;
+  --accent-ink: #1a1204;
+  --accent-edge: #a86a12;
+  --accent-glow: rgba(242, 169, 59, 0.28);
 
   --amber: #fbbf24;
 
   /* En oscuro el bisel se apaga y la saturación baja: los mismos valores que
      en claro dan un cristal turbio y sucio sobre fondo oscuro. No es el claro
      invertido. */
-  --lq-bg: rgba(28, 33, 45, 0.42);
+  --lq-bg: rgba(30, 32, 40, 0.42);
   --lq-blur: 28px;
   --lq-sat: 1.4;
   --lq-spec: rgba(255, 255, 255, 0.7);
@@ -98,7 +105,7 @@
   --lq-bisel-lo: rgba(0, 0, 0, 0.4);
   --lq-brillo: rgba(255, 255, 255, 0.14);
   --lq-sombra: rgba(0, 0, 0, 0.45);
-  --lq-solido: rgba(26, 30, 40, 0.95);
+  --lq-solido: rgba(30, 32, 40, 0.95);
 }
 
 body {
@@ -275,15 +282,15 @@ body {
 .dark .hero-fondo::before { opacity: 0.85; }
 
 :root {
-  --luz-a: rgba(61, 90, 254, 0.26);
-  --luz-b: rgba(120, 190, 255, 0.28);
-  --luz-c: rgba(180, 160, 255, 0.24);
+  --luz-a: rgba(242, 169, 59, 0.2);
+  --luz-b: rgba(255, 214, 150, 0.24);
+  --luz-c: rgba(255, 236, 205, 0.26);
 }
 
 .dark {
-  --luz-a: rgba(61, 90, 254, 0.40);
-  --luz-b: rgba(20, 120, 220, 0.32);
-  --luz-c: rgba(120, 60, 220, 0.28);
+  --luz-a: rgba(242, 169, 59, 0.14);
+  --luz-b: rgba(190, 110, 30, 0.12);
+  --luz-c: rgba(120, 70, 30, 0.12);
 }
 
 .dark .hero-fondo::before {
@@ -328,6 +335,20 @@ body {
     var(--background) 100%
   );
 }
+
+/* El NS de la portada. Las dos imágenes llevan transparencia, así que se funden
+   con el campo de luz de detrás. Se aumentan porque el NS ocupa dos tercios de
+   la imagen: el resto es el aire que necesita su brillo. */
+.hero-ns {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: scale(1.2);
+}
+
+.hero-ns-oscuro { display: none; }
+.dark .hero-ns-claro { display: none; }
+.dark .hero-ns-oscuro { display: block; }
 
 /* Iconos del set neumórfico.
    Hay dos juegos generados de la misma rejilla, uno por tema, y cada uno lleva

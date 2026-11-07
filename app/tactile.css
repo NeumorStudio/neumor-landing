@@ -43,16 +43,16 @@
   gap: 0.5rem;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--accent) 80%, #fff),
-    var(--accent) 55%,
-    color-mix(in srgb, var(--accent) 85%, var(--accent-edge))
+    color-mix(in srgb, var(--accent-fill) 84%, #fff),
+    var(--accent-fill) 58%,
+    color-mix(in srgb, var(--accent-fill) 85%, var(--accent-edge))
   );
-  color: #fff;
+  color: var(--accent-ink);
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.8rem 1.5rem;
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, #000);
+  border: 1px solid color-mix(in srgb, var(--accent-fill) 70%, #000);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
     inset 0 -6px 10px -4px rgba(0, 0, 0, 0.25),
@@ -85,7 +85,7 @@
 /* ---------- Card ---------- */
 /* Volumen suave en vez de tecla plana: degradado de arriba a abajo, un filo de
    luz en el borde superior, sombra interior abajo y caida difusa. El brillo
-   azul de la esquina repite la luz del logo. Los tonos viven en --card-*. */
+   ámbar de la esquina repite la luz del logo. Los tonos viven en --card-*. */
 .ng-card {
   background:
     radial-gradient(120% 80% at 88% 0%, var(--card-shine), transparent 60%),
@@ -377,7 +377,7 @@
   background: var(--amber);
 }
 
-/* ---------- Laboratorio (el ámbar solo vive aquí) ---------- */
+/* ---------- Laboratorio ---------- */
 .lab-status {
   display: inline-flex;
   align-items: center;
