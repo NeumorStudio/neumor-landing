@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { LogoNS } from "@/components/ui/LogoNS";
 import { useTheme } from "@/components/theme/ThemeContext";
 
 // Cinco enlaces como máximo: con siete el menú de escritorio se apelmaza.
@@ -136,15 +136,8 @@ export function Navbar() {
           aria-label="NeumorStudio"
           className="ng-wordmark nav-item !py-1.5 font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
-          {/* Símbolo: N modular azul */}
-          <Image
-            src="/images/logo-mark.png"
-            alt=""
-            width={64}
-            height={64}
-            priority
-            className="w-[1.5em] h-[1.5em] mr-2 rounded-[0.34em]"
-          />
+          {/* Símbolo: el NS, del color del texto */}
+          <LogoNS className="w-[1.5em] h-[1.5em] mr-1" />
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
               {letter}

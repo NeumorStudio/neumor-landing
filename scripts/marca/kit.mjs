@@ -5,6 +5,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 const DIR = "public/marca";
+const DIR_WEB = "public/icons";
 const LADO = 2820;
 const NS_MAESTRO = 0.883; // Alto del NS dentro del lienzo del maestro
 const NS_ICONO = 0.66; // En iconos deja aire y aguanta un recorte redondo
@@ -48,20 +49,55 @@ const piezas = {
 };
 for (const [nombre, contenido] of Object.entries(piezas)) fs.writeFileSync(path.join(DIR, nombre), contenido);
 
+// La web pinta el NS en línea para que tome el color del tema y no parpadee al cargar.
+fs.writeFileSync(
+  "components/ui/ns-trazado.ts",
+  `// Generado por scripts/marca/kit.mjs a partir de public/marca/ns-marca.svg. No se edita a mano.\nexport const NS_TRAZADO =\n  "${d}";\n`,
+);
+
 // Se rasteriza a cuatro veces el tamaño y se reduce: los bordes salen más limpios.
-async function png(svg, lado, opaco) {
+function png(svg, lado, opaco) {
   const grande = svg.replace("<svg ", `<svg width="${lado * 4}" height="${lado * 4}" `);
   let imagen = sharp(Buffer.from(grande)).resize(lado, lado, { kernel: "lanczos3" });
   if (opaco) imagen = imagen.flatten({ background: NEGRO }).removeAlpha();
-  await imagen.png({ compressionLevel: 9 }).toFile(path.join(DIR, `icono-${lado}.png`));
+  return imagen.png({ compressionLevel: 9 }).toBuffer();
+}
+
+// Un .ico es una cabecera, una entrada por tamaño y los PNG uno detrás de otro.
+function ico(imagenes) {
+  const cabecera = Buffer.alloc(6);
+  cabecera.writeUInt16LE(1, 2);
+  cabecera.writeUInt16LE(imagenes.length, 4);
+  let posicion = 6 + 16 * imagenes.length;
+  const entradas = imagenes.map(({ lado, datos }) => {
+    const e = Buffer.alloc(16);
+    e[0] = lado;
+    e[1] = lado;
+    e.writeUInt16LE(1, 4);
+    e.writeUInt16LE(32, 6);
+    e.writeUInt32LE(datos.length, 8);
+    e.writeUInt32LE(posicion, 12);
+    posicion += datos.length;
+    return e;
+  });
+  return Buffer.concat([cabecera, ...entradas, ...imagenes.map((i) => i.datos)]);
 }
 
 // Favicons: plano, porque a este tamaño el relieve no se ve.
 const favicon = envolver(`<rect width="${LADO}" height="${LADO}" rx="${RADIO}" fill="${NEGRO}"/>${ns(BLANCO, NS_FAVICON)}`);
-for (const lado of [16, 32, 48]) await png(favicon, lado, false);
+const pequenos = [];
+for (const lado of [16, 32, 48]) {
+  const datos = await png(favicon, lado, false);
+  pequenos.push({ lado, datos });
+  fs.writeFileSync(path.join(DIR, `icono-${lado}.png`), datos);
+  if (lado < 48) fs.writeFileSync(path.join(DIR_WEB, `favicon-${lado}x${lado}.png`), datos);
+}
+fs.writeFileSync("app/favicon.ico", ico(pequenos));
 
 // Apple, Google y las PWA redondean por su cuenta, y App Store no admite transparencia.
 const cuadrado = envolver(tecla(0));
-for (const lado of [180, 192, 512, 1024]) await png(cuadrado, lado, true);
+for (const lado of [180, 192, 512, 1024]) fs.writeFileSync(path.join(DIR, `icono-${lado}.png`), await png(cuadrado, lado, true));
+for (const lado of [72, 96, 128, 144, 152, 192, 384, 512]) fs.writeFileSync(path.join(DIR_WEB, `icon-${lado}x${lado}.png`), await png(cuadrado, lado, true));
+fs.writeFileSync(path.join(DIR_WEB, "apple-touch-icon.png"), await png(cuadrado, 180, true));
 
-console.log("Kit generado en", DIR);
+console.log("Kit generado en", DIR, "y", DIR_WEB);
