@@ -15,7 +15,7 @@ export const NeumorfSection = forwardRef<HTMLElement, NeumorfSectionProps>(
         className={`
           w-full max-w-5xl mx-auto
           px-4 md:px-6
-          py-10 md:py-16
+          py-[72px] md:py-28
           ${className}
         `}
       >

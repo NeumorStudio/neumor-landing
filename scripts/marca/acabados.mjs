@@ -1,6 +1,6 @@
 // Calcula los acabados del NS píxel a píxel a partir del maestro: volumen por
 // distancia al borde, luz de estudio, refracción y brillo. No usa servicios externos.
-// Uso: node scripts/marca/acabados.mjs [porcelana] [cristal] [relieve]
+// Uso: node scripts/marca/acabados.mjs [porcelana] [cristal] [relieve] [tresDeClaro]
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
@@ -147,6 +147,53 @@ async function guardar(px, nombre) {
     .toFile(path.join(DIR, `${nombre}.webp`));
 }
 
+// Quita un color de fondo y lo convierte en transparencia, conservando luces y
+// sombras. Así el NS se puede poner sobre cualquier fondo sin que se vea un cuadrado.
+function sinFondo(rgb, n, fondo, salida) {
+  const base = lineal(fondo).map(srgb);
+  for (let i = 0; i < n; i++) {
+    let a = 0;
+    for (let c = 0; c < 3; c++) {
+      const d = rgb[i * 3 + c] / 255 - base[c];
+      a = Math.max(a, d > 0 ? d / (1 - base[c]) : -d / base[c]);
+    }
+    for (let c = 0; c < 3; c++) {
+      const v = a > 0.002 ? (rgb[i * 3 + c] / 255 - base[c]) / a + base[c] : base[c];
+      salida[i * 4 + c] = Math.round(Math.min(1, Math.max(0, v)) * 255);
+    }
+    salida[i * 4 + 3] = Math.round(a * 255);
+  }
+  return salida;
+}
+
+async function guardarSinFondo(px, nombre) {
+  const rgb = new Uint8Array(S * S * 3);
+  for (let i = 0; i < S * S * 3; i++) rgb[i] = Math.round(srgb(px[i]) * 255);
+  const rgba = sinFondo(rgb, S * S, "#17181F", Buffer.alloc(S * S * 4));
+  await sharp(rgba, { raw: { width: S, height: S, channels: 4 }, limitInputPixels: false })
+    .resize(SALIDA, SALIDA, { kernel: "lanczos3" })
+    .webp({ quality: 88, alphaQuality: 90 })
+    .toFile(path.join(DIR, `${nombre}.webp`));
+}
+
+// El 3D para el tema claro. Su NS es blanco como su fondo, así que no se puede
+// quitar por color: se desvanece en círculo y queda como un halo sobre la página.
+async function tresDeClaro() {
+  const { data, info } = await sharp("public/images/logoneumor.jpeg").removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width: w, height: h } = info;
+  const rgba = Buffer.alloc(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x;
+    rgba[i * 4] = data[i * 3];
+    rgba[i * 4 + 1] = data[i * 3 + 1];
+    rgba[i * 4 + 2] = data[i * 3 + 2];
+    rgba[i * 4 + 3] = Math.round(suave(0.5, 0.36, Math.hypot(x / w - 0.5, y / h - 0.5)) * 255);
+  }
+  await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
+    .webp({ quality: 88, alphaQuality: 90 })
+    .toFile(path.join(DIR, "ns-3d-sin-fondo.webp"));
+}
+
 // Líquido blanco y brillante, con luz ámbar en los huecos, sobre carbón.
 async function porcelana() {
   const { A, dentro, mitad } = await mascara();
@@ -186,6 +233,9 @@ async function porcelana() {
     }
   }
   await guardar(px, "ns-porcelana");
+  await guardarSinFondo(px, "ns-porcelana-sin-fondo");
+  // La imagen social se monta con un generador que no lee WebP
+  await sharp(path.join(DIR, "ns-porcelana.webp")).resize(640, 640).jpeg({ quality: 88 }).toFile(path.join(DIR, "ns-porcelana-social.jpg"));
 }
 
 // Cristal que refracta la luz de detrás, con filo fino y brillo en los bordes.
@@ -251,7 +301,7 @@ async function relieve() {
   await guardar(px, "ns-relieve");
 }
 
-const acabados = { porcelana, cristal, relieve };
+const acabados = { porcelana, cristal, relieve, tresDeClaro };
 const pedidos = process.argv.slice(2);
 for (const nombre of pedidos.length ? pedidos : Object.keys(acabados)) {
   await acabados[nombre]();

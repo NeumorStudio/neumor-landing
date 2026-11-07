@@ -35,6 +35,9 @@ Son imágenes de 1600 px sobre carbón. Por debajo de unos 200 px se usa siempre
 | `ns-porcelana.webp` | Portada de la web, redes y anuncios |
 | `ns-cristal.webp` | Momentos especiales, como una campaña. Si se usa en todo, cansa |
 | `ns-relieve.webp` | Neumorfismo puro. Solo se lee en grande |
+| `ns-porcelana-sin-fondo.webp` | La porcelana con transparencia, para ponerla sobre otro fondo. La usa la portada |
+| `ns-3d-sin-fondo.webp` | El 3D desvanecido en círculo. Lo usa la portada en tema claro |
+| `ns-porcelana-social.jpg` | La usa la imagen que sale al compartir el enlace |
 
 El 3D (`public/images/logoneumor.jpeg`) es la versión para fondos claros y la tarjeta de visita. La porcelana es esa misma idea sobre negro.
 
@@ -57,7 +60,7 @@ Alrededor del logo se deja libre un cuarto de su alto.
 | --- | --- | --- |
 | Logo en la barra | 40 px | 40 px |
 | Espacio sobre el titular | 128 px | 88 px |
-| Espacio entre secciones | 112 px | 72 px |
+| Margen arriba y abajo de cada sección | 112 px | 72 px |
 | Dentro de las tarjetas | 32 px | 24 px |
 
 ## Reglas
@@ -76,3 +79,7 @@ Todo sale de `ns-marca.svg`. Si cambia el maestro, hay que volver a generar el r
 node scripts/marca/kit.mjs
 node scripts/marca/acabados.mjs
 ```
+
+`kit.mjs` escribe también los iconos de `public/icons/`, `app/favicon.ico` y el trazado que usa la web, `components/ui/ns-trazado.ts`. Si cambian los iconos o el logo, hay que subir la versión de la caché en `public/sw.js`.
+
+Los campos de luz del hero salen de `node scripts/marca/fondos.mjs`.
