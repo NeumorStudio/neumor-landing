@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { Proyectos } from "@/components/ui/Proyectos"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
@@ -203,7 +204,8 @@ export default function Home() {
     const ctx = gsap.context(() => {
       // Hero: una sola entrada orquestada
       gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
+        .fromTo('.hero-logo', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.9 })
+        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.7')
         .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
         .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
         .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.5 }, '-=0.35')
@@ -260,59 +262,84 @@ export default function Home() {
 
       <main className="min-h-screen pt-20">
         {/* ========== HERO: MANIFIESTO + MESA DE TALLER ========== */}
-        <NeumorfSection className="py-14 md:py-20 relative">
+        <NeumorfSection className="max-w-6xl !pt-6 !pb-[72px] lg:!pt-32 md:!pb-28 relative">
           <div className="hero-fondo" aria-hidden="true" />
-          <div className="max-w-3xl mx-auto text-center relative z-10">
-            <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] mb-6">
-              {marca.descriptor}
-            </p>
+          <div className="relative z-10 grid items-center gap-6 lg:gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
+            <div className="text-center lg:text-left">
+              <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] text-balance mb-6">
+                {marca.descriptor}
+              </p>
 
-            {/* El titular es la misión dicha en una línea. Habla de lo que gana
-                quien paga, no de lo que hacemos nosotros. */}
-            <h1 className="font-display text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-6">
-              <span className="hero-line block">Montamos el software</span>
-              <span className="hero-line block">que tu negocio</span>
-              <span className="hero-line block text-[var(--accent)]">todavía hace a mano.</span>
-            </h1>
+              {/* El titular es la misión dicha en una línea. Habla de lo que gana
+                  quien paga, no de lo que hacemos nosotros. */}
+              <h1 className="font-display text-[1.95rem] sm:text-4xl md:text-5xl xl:text-[3.4rem] font-bold tracking-tight leading-[1.05] mb-6">
+                <span className="hero-line block">Montamos el software</span>
+                <span className="hero-line block">que tu negocio</span>
+                <span className="hero-line block text-[var(--accent)]">todavía hace a mano.</span>
+              </h1>
 
-            <p className="hero-desc text-base md:text-lg text-[var(--ink-soft)] mb-8 max-w-xl mx-auto">
-              {marca.subtitular}
-            </p>
+              <p className="hero-desc text-base md:text-lg text-[var(--ink-soft)] mb-8 max-w-xl mx-auto lg:mx-0">
+                {marca.subtitular}
+              </p>
 
-            {/* El primer botón lleva a un producto en producción, no a un
-                formulario: es lo que hace verdad el "se demuestra, no se promete". */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
-              <a
-                href={sitio.demoSalonio}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hero-cta ng-btn-primary"
-              >
-                Ver uno funcionando
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-              <button
-                onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
-                className="hero-cta ng-raised px-6 py-3 text-sm font-medium"
-              >
-                Cuéntanos tu caso
-              </button>
+              {/* El primer botón lleva a un producto en producción, no a un
+                  formulario: es lo que hace verdad el "se demuestra, no se promete". */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center">
+                <a
+                  href={sitio.demoSalonio}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hero-cta ng-btn-primary"
+                >
+                  Ver uno funcionando
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+                <button
+                  onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="hero-cta ng-raised px-6 py-3 text-sm font-medium"
+                >
+                  Cuéntanos tu caso
+                </button>
+              </div>
             </div>
 
-            {/* Mesa de taller: las piezas se arrastran de verdad */}
-            {/* La mesa de piezas pasa a ser cristal: es lo único que flota sobre
-                el fondo del hero y por tanto el sitio natural del material.
-                Su contenido —las piezas arrastrables— sigue intacto. */}
-            <div ref={trayRef} className="toy-tray lq lq-vivo h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
-              {toyPieces.map((piece) => (
-                <span key={piece.label} className="toy-piece" data-lab={piece.lab || undefined}>
-                  <span className="toy-dot" />
-                  {piece.label}
-                </span>
-              ))}
+            {/* La n de la portada, una por tema: cristal en oscuro y relieve en
+                claro. El CSS elige cuál se ve, y la que no toca no se descarga.
+                Los tamaños cuentan con el aumento del CSS (.hero-n). */}
+            <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-72 lg:max-w-none">
+              <Image
+                src="/marca/n-cristal-sin-fondo.webp"
+                alt=""
+                width={1400}
+                height={1400}
+                priority
+                sizes="(min-width: 1024px) 65vw, 26rem"
+                className="hero-n hero-n-oscuro"
+              />
+              <Image
+                src="/marca/n-relieve-claro-sin-fondo.webp"
+                alt=""
+                width={1400}
+                height={1400}
+                sizes="(min-width: 1024px) 65vw, 26rem"
+                className="hero-n hero-n-claro"
+              />
             </div>
+          </div>
+
+          {/* Mesa de taller: las piezas se arrastran de verdad */}
+          {/* La mesa de piezas pasa a ser cristal: es lo único que flota sobre
+              el fondo del hero y por tanto el sitio natural del material.
+              Su contenido —las piezas arrastrables— sigue intacto. */}
+          <div ref={trayRef} className="toy-tray lq lq-vivo relative z-10 mt-12 md:mt-20 h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
+            {toyPieces.map((piece) => (
+              <span key={piece.label} className="toy-piece" data-lab={piece.lab || undefined}>
+                <span className="toy-dot" />
+                {piece.label}
+              </span>
+            ))}
           </div>
         </NeumorfSection>
 
@@ -424,7 +451,7 @@ export default function Home() {
             {marca.valores.map((valor) => (
               <article key={valor.titulo} className="ng-card p-6 flex flex-col gap-2">
                 <h3 className="font-display text-lg font-bold">{valor.titulo}</h3>
-                <p className="font-mono text-xs text-emerald-600 dark:text-emerald-400">
+                <p className="font-mono text-xs text-[var(--accent)]">
                   {valor.prueba}
                 </p>
               </article>
@@ -548,7 +575,7 @@ export default function Home() {
 
         {/* ========== FOOTER ========== */}
         <footer className="border-t border-[var(--edge-border)]">
-          <NeumorfSection className="py-8 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
+          <NeumorfSection className="!py-8 md:!py-10 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
             {/* Wordmark: neumor▪ / STUDIO */}
             <div className="flex flex-col items-center md:items-start gap-1">
               <span className="font-display text-2xl font-bold tracking-tight leading-none text-[var(--foreground)]">

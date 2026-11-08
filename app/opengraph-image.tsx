@@ -16,8 +16,12 @@ export const contentType = 'image/png'
 // El mismo símbolo que la barra de navegación y el favicon. Se incrusta en la
 // imagen para que quien vea la previsualización y quien entre en la web vean
 // exactamente la misma marca.
-const logo = readFileSync(join(process.cwd(), 'public/images/logo-mark.png'))
+const logo = readFileSync(join(process.cwd(), 'public/marca/icono-192.png'))
 const logoSrc = `data:image/png;base64,${logo.toString('base64')}`
+
+// La n de cristal de la portada, a la derecha. Es JPEG porque este generador no lee WebP.
+const n = readFileSync(join(process.cwd(), 'public/marca/n-cristal-social.jpg'))
+const nSrc = `data:image/jpeg;base64,${n.toString('base64')}`
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -29,10 +33,19 @@ export default function OpenGraphImage() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: '#12151c',
+          backgroundColor: '#17181f',
           padding: '72px 80px',
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={nSrc}
+          alt=""
+          width={640}
+          height={640}
+          style={{ position: 'absolute', top: -5, right: -40 }}
+        />
+
         {/* Símbolo + wordmark: neumor▪ / STUDIO, el mismo del pie de la web */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -47,7 +60,7 @@ export default function OpenGraphImage() {
             style={{
               fontSize: 40,
               fontWeight: 700,
-              color: '#f2f4f8',
+              color: '#f3f2ef',
               letterSpacing: '-0.02em',
             }}
           >
@@ -57,7 +70,7 @@ export default function OpenGraphImage() {
             style={{
               width: 10,
               height: 10,
-              backgroundColor: '#5c77ff',
+              backgroundColor: '#f2a93b',
               borderRadius: 2,
               marginLeft: 4,
               marginTop: 16,
@@ -67,7 +80,7 @@ export default function OpenGraphImage() {
             style={{
               fontSize: 18,
               fontWeight: 300,
-              color: '#8b94a7',
+              color: '#afaeb9',
               letterSpacing: '0.42em',
               marginLeft: 16,
               marginTop: 12,
@@ -81,12 +94,12 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: 'flex',
-              fontSize: 68,
+              fontSize: 60,
               fontWeight: 700,
-              color: '#f2f4f8',
+              color: '#f3f2ef',
               lineHeight: 1.1,
               letterSpacing: '-0.03em',
-              maxWidth: 900,
+              maxWidth: 680,
             }}
           >
             Montamos el software que tu negocio todavía hace a mano
@@ -94,10 +107,10 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: 'flex',
-              fontSize: 27,
-              color: '#8b94a7',
+              fontSize: 25,
+              color: '#afaeb9',
               marginTop: 28,
-              maxWidth: 820,
+              maxWidth: 640,
               lineHeight: 1.4,
             }}
           >
@@ -106,8 +119,8 @@ export default function OpenGraphImage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ display: 'flex', width: 56, height: 4, backgroundColor: '#5c77ff' }} />
-          <span style={{ fontSize: 22, color: '#8b94a7', marginLeft: 20 }}>
+          <div style={{ display: 'flex', width: 56, height: 4, backgroundColor: '#f2a93b' }} />
+          <span style={{ fontSize: 22, color: '#afaeb9', marginLeft: 20 }}>
             neumorstudio.com
           </span>
         </div>

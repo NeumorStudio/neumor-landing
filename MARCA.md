@@ -62,9 +62,9 @@ Alrededor del logo se deja libre un cuarto de su alto.
 
 | En la web | Escritorio | Móvil |
 | --- | --- | --- |
-| Logo en la barra | 40 px | 40 px |
+| Logo en la barra | 32 px | 32 px |
 | Espacio sobre el titular | 128 px | 88 px |
-| Espacio entre secciones | 112 px | 72 px |
+| Margen arriba y abajo de cada sección | 112 px | 72 px |
 | Dentro de las tarjetas | 32 px | 24 px |
 
 ## Reglas
@@ -83,3 +83,7 @@ La forma está en `scripts/marca/forma.mjs` y los acabados en `scripts/marca/mot
 ```bash
 node scripts/marca/kit.mjs
 ```
+
+`kit.mjs` escribe también los iconos de `public/icons/`, `app/favicon.ico` y la forma que usa la web, `components/ui/n-forma.ts`. Si cambian los iconos o el logo, hay que subir la versión de la caché en `public/sw.js`.
+
+Los campos de luz del hero salen de `node scripts/marca/fondos.mjs`.

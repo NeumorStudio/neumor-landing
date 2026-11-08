@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { LogoN } from "@/components/ui/LogoN";
 import { useTheme } from "@/components/theme/ThemeContext";
 
 // Cinco enlaces como máximo: con siete el menú de escritorio se apelmaza.
@@ -134,17 +134,10 @@ export function Navbar() {
         <Link
           href="/"
           aria-label="NeumorStudio"
-          className="ng-wordmark nav-item !py-1.5 font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
+          className="ng-wordmark nav-item !py-0.5 font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
         >
-          {/* Símbolo: N modular azul */}
-          <Image
-            src="/images/logo-mark.png"
-            alt=""
-            width={64}
-            height={64}
-            priority
-            className="w-[1.5em] h-[1.5em] mr-2 rounded-[0.34em]"
-          />
+          {/* Símbolo: la n, del color del texto y con el punto ámbar */}
+          <LogoN className="w-8 h-8 mr-1.5" />
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
               {letter}
@@ -153,7 +146,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-5">
+        <div className="hidden lg:flex items-center gap-5">
           {navLinks.map((link) => (
             <button
               key={link.href}
@@ -179,7 +172,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile: toggle + menu button */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="lg:hidden flex items-center gap-2">
           <ThemeButton />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -200,7 +193,7 @@ export function Navbar() {
       {/* Mobile Menu */}
       <div
         className={`
-          md:hidden overflow-hidden transition-all duration-300 ease-out
+          lg:hidden overflow-hidden transition-all duration-300 ease-out
           ${isMobileMenuOpen ? "max-h-80 opacity-100 mt-2" : "max-h-0 opacity-0"}
         `}
       >

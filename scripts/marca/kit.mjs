@@ -3,10 +3,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
-import { AMBAR, AMBAR_SOBRE_CLARO, MAESTRO, PEQUENA, arco, caja, encaja, punto } from "./forma.mjs";
+import { AMBAR, AMBAR_SOBRE_CLARO, MAESTRO, PEQUENA, arco, arcoD, caja, centroX, encaja, punto } from "./forma.mjs";
 import { acabado } from "./motor.mjs";
 
 const DIR = "public/marca";
+const DIR_WEB = "public/icons";
 const NEGRO = "#0B0B0F";
 const BLANCO = "#FFFFFF";
 const CARBON = "#17181F";
@@ -29,6 +30,18 @@ const piezas = {
 };
 for (const [nombre, contenido] of Object.entries(piezas)) fs.writeFileSync(path.join(DIR, nombre), contenido);
 
+// La web pinta la n en línea para que el arco tome el color del tema y no parpadee al cargar.
+const forma = {
+  vista,
+  arco: arcoD(MAESTRO),
+  trazo: MAESTRO.trazo,
+  punto: { cx: centroX(MAESTRO), cy: MAESTRO.punto.cy, r: MAESTRO.punto.r },
+};
+fs.writeFileSync(
+  "components/ui/n-forma.ts",
+  `// Generado por scripts/marca/kit.mjs a partir de scripts/marca/forma.mjs. No se edita a mano.\nexport const N_FORMA = ${JSON.stringify(forma, null, 2)} as const;\n`,
+);
+
 // Lo pequeño se rasteriza a cuatro veces el tamaño y se reduce: los bordes salen más limpios.
 async function imagen(svg, lado, { opaco = false, formato = "png" } = {}) {
   const k = lado <= 512 ? 4 : 1;
@@ -42,13 +55,43 @@ async function imagen(svg, lado, { opaco = false, formato = "png" } = {}) {
 const guarda = async (nombre, svg, lado, opciones) =>
   fs.writeFileSync(path.join(DIR, nombre), await imagen(svg, lado, opciones));
 
+// Un .ico es una cabecera, una entrada por tamaño y los PNG uno detrás de otro.
+function ico(imagenes) {
+  const cabecera = Buffer.alloc(6);
+  cabecera.writeUInt16LE(1, 2);
+  cabecera.writeUInt16LE(imagenes.length, 4);
+  let posicion = 6 + 16 * imagenes.length;
+  const entradas = imagenes.map(({ lado, datos }) => {
+    const e = Buffer.alloc(16);
+    e[0] = lado;
+    e[1] = lado;
+    e.writeUInt16LE(1, 4);
+    e.writeUInt16LE(32, 6);
+    e.writeUInt32LE(datos.length, 8);
+    e.writeUInt32LE(posicion, 12);
+    posicion += datos.length;
+    return e;
+  });
+  return Buffer.concat([cabecera, ...entradas, ...imagenes.map((i) => i.datos)]);
+}
+
 // Favicons: planos y con la n pequeña, porque a este tamaño el relieve no se ve.
 const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="${RADIO}" fill="${NEGRO}"/>${encaja(PEQUENA, N_FAVICON, arco(PEQUENA, BLANCO) + punto(PEQUENA, AMBAR))}</svg>`;
-for (const lado of [16, 32, 48]) await guarda(`icono-${lado}.png`, favicon, lado);
+const pequenos = [];
+for (const lado of [16, 32, 48]) {
+  const datos = await imagen(favicon, lado);
+  pequenos.push({ lado, datos });
+  fs.writeFileSync(path.join(DIR, `icono-${lado}.png`), datos);
+  if (lado < 48) fs.writeFileSync(path.join(DIR_WEB, `favicon-${lado}x${lado}.png`), datos);
+}
+fs.writeFileSync("app/favicon.ico", ico(pequenos));
 
 // Apple, Google y las PWA redondean por su cuenta, y App Store no admite transparencia.
 const cuadrado = acabado("blanco");
 for (const lado of [180, 192, 512, 1024]) await guarda(`icono-${lado}.png`, cuadrado, lado, { opaco: true });
+for (const lado of [72, 96, 128, 144, 152, 192, 384, 512])
+  fs.writeFileSync(path.join(DIR_WEB, `icon-${lado}x${lado}.png`), await imagen(cuadrado, lado, { opaco: true }));
+fs.writeFileSync(path.join(DIR_WEB, "apple-touch-icon.png"), await imagen(cuadrado, 180, { opaco: true }));
 
 // Acabados en grande, sobre su fondo. Por debajo de unos 200 px se usa el plano.
 const acabados = { "n-cristal": "cristal", "n-blanco": "blanco", "n-relieve-oscuro": "relieveOscuro", "n-relieve-claro": "relieveClaro" };
@@ -63,4 +106,4 @@ await guarda("n-relieve-claro-sin-fondo.webp", acabado("relieveClaro", { fondo: 
 // JPEG porque el generador de Next no lee WebP.
 await guarda("n-cristal-social.jpg", acabado("cristal", { fondo: CARBON, margen: 20 }), 640, { formato: "jpg" });
 
-console.log("Kit generado en", DIR);
+console.log("Kit generado en", DIR, "y", DIR_WEB);
