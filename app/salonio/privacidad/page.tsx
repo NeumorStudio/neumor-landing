@@ -134,10 +134,16 @@ export default function PrivacidadSalonio() {
             <div>
               <h2 className="text-xl font-semibold mb-3">7. Cuánto tiempo los conservamos</h2>
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>Tu cuenta:</strong> mientras la mantengas. Puedes pedir que la eliminemos en cualquier momento.</li>
                 <li>
-                  <strong>Tus citas:</strong> el salón las conserva el tiempo necesario para gestionar la cita y
-                  cumplir sus obligaciones legales, y después se eliminan o se anonimizan.
+                  <strong>Tu cuenta:</strong> mientras la mantengas. Puedes eliminarla tú mismo en cualquier
+                  momento desde la app (ver el apartado 8).
+                </li>
+                <li>
+                  <strong>Tus citas:</strong> conservamos tu nombre y tu teléfono en cada cita durante{' '}
+                  <strong>24 meses desde la fecha de la cita</strong>. Pasado ese plazo se anonimizan
+                  automáticamente: se borran tu nombre, tu teléfono y el vínculo con tu cuenta, y la cita queda
+                  solo como un registro de fecha, servicio y profesional, sin datos que te identifiquen, para
+                  que el salón conserve su histórico.
                 </li>
               </ul>
             </div>
@@ -150,6 +156,12 @@ export default function PrivacidadSalonio() {
                 de tu cuenta; si se trata de una cita concreta, también puedes dirigirte al salón. Si crees que no
                 hemos atendido bien tu solicitud, puedes reclamar ante la Agencia Española de Protección de
                 Datos (<a className="underline" href="https://www.aepd.es" target="_blank" rel="noopener noreferrer">aepd.es</a>).
+              </p>
+              <p className="mt-3">
+                <strong>Eliminar tu cuenta desde la app:</strong> entra en <em>Ajustes → Eliminar mi cuenta</em>.
+                Al confirmar, se borra tu cuenta y tus salones guardados, se cancelan tus citas futuras y se
+                eliminan el nombre y el teléfono de todas tus citas. No se puede deshacer. Si no tienes la app
+                instalada, escríbenos a {operador.email} desde el correo de tu cuenta y la eliminamos por ti.
               </p>
             </div>
 
