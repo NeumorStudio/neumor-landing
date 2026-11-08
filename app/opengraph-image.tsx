@@ -19,9 +19,9 @@ export const contentType = 'image/png'
 const logo = readFileSync(join(process.cwd(), 'public/marca/icono-192.png'))
 const logoSrc = `data:image/png;base64,${logo.toString('base64')}`
 
-// El NS de la portada, a la derecha. Es JPEG porque este generador no lee WebP.
-const ns = readFileSync(join(process.cwd(), 'public/marca/ns-porcelana-social.jpg'))
-const nsSrc = `data:image/jpeg;base64,${ns.toString('base64')}`
+// La n de cristal de la portada, a la derecha. Es JPEG porque este generador no lee WebP.
+const n = readFileSync(join(process.cwd(), 'public/marca/n-cristal-social.jpg'))
+const nSrc = `data:image/jpeg;base64,${n.toString('base64')}`
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -39,7 +39,7 @@ export default function OpenGraphImage() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={nsSrc}
+          src={nSrc}
           alt=""
           width={640}
           height={640}

@@ -7,7 +7,7 @@
 @import "./tactile.css";
 
 :root {
-  /* Paleta — porcelana cálida, como el NS en 3D. El tema claro es el secundario:
+  /* Paleta — porcelana cálida, como la n en relieve claro. El tema claro es el secundario:
      la cara de la marca es el oscuro (MARCA.md). */
   --background: #eeede9;
   --bg-deep: #e4e2dd;
@@ -336,19 +336,23 @@ body {
   );
 }
 
-/* El NS de la portada. Las dos imágenes llevan transparencia, así que se funden
-   con el campo de luz de detrás. Se aumentan porque el NS ocupa dos tercios de
-   la imagen: el resto es el aire que necesita su brillo. */
-.hero-ns {
+/* La n de la portada. Las dos imágenes llevan transparencia, así que se funden
+   con el campo de luz de detrás. Se aumentan porque la n ocupa dos quintos de
+   la imagen: el resto es el margen donde se apaga la luz del cristal. */
+.hero-n {
   display: block;
   width: 100%;
   height: auto;
-  transform: scale(1.2);
+  transform: scale(1.45);
 }
 
-.hero-ns-oscuro { display: none; }
-.dark .hero-ns-claro { display: none; }
-.dark .hero-ns-oscuro { display: block; }
+/* El punto del logo: ámbar, y algo más oscuro sobre fondo claro (MARCA.md). */
+.logo-n-punto { fill: #e8962a; }
+.dark .logo-n-punto { fill: #f2a93b; }
+
+.hero-n-oscuro { display: none; }
+.dark .hero-n-claro { display: none; }
+.dark .hero-n-oscuro { display: block; }
 
 /* Iconos del set neumórfico.
    Hay dos juegos generados de la misma rejilla, uno por tema, y cada uno lleva

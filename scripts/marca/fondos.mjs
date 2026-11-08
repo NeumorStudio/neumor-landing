@@ -38,7 +38,7 @@ async function campo(nombre, ancho, alto, base, focos) {
 
 const AMBAR = "#F2A93B", BRASA = "#B9681C", CREMA = "#FFE2B0", MIEL = "#F7C777";
 
-// En oscuro, luz baja: el protagonista es el NS y el campo solo le da dónde brillar.
+// En oscuro, luz baja: el protagonista es la n y el campo solo le da dónde brillar.
 await campo("fondo-oscuro", 1600, 893, "#17181F", [
   [0.73, 0.5, 0.16, 0.28, AMBAR, 0.1],
   [0.9, 0.2, 0.12, 0.2, BRASA, 0.08],

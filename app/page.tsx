@@ -305,25 +305,26 @@ export default function Home() {
               </div>
             </div>
 
-            {/* El NS de la portada, uno por tema. El CSS elige cuál se ve, y el
-                que no toca no se descarga. */}
+            {/* La n de la portada, una por tema: cristal en oscuro y relieve en
+                claro. El CSS elige cuál se ve, y la que no toca no se descarga.
+                Los tamaños cuentan con el aumento del CSS (.hero-n). */}
             <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-72 lg:max-w-none">
               <Image
-                src="/marca/ns-porcelana-sin-fondo.webp"
+                src="/marca/n-cristal-sin-fondo.webp"
                 alt=""
-                width={1600}
-                height={1600}
+                width={1400}
+                height={1400}
                 priority
-                sizes="(min-width: 1024px) 45vw, 18rem"
-                className="hero-ns hero-ns-oscuro"
+                sizes="(min-width: 1024px) 65vw, 26rem"
+                className="hero-n hero-n-oscuro"
               />
               <Image
-                src="/marca/ns-3d-sin-fondo.webp"
+                src="/marca/n-relieve-claro-sin-fondo.webp"
                 alt=""
-                width={1024}
-                height={1024}
-                sizes="(min-width: 1024px) 45vw, 18rem"
-                className="hero-ns hero-ns-claro"
+                width={1400}
+                height={1400}
+                sizes="(min-width: 1024px) 65vw, 26rem"
+                className="hero-n hero-n-claro"
               />
             </div>
           </div>
