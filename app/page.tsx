@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { Proyectos } from "@/components/ui/Proyectos"
+import { ProductoEnEscena, type FuncionProducto } from "@/components/ui/ProductoEnEscena"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
 import { LogoN } from "@/components/ui/LogoN"
@@ -12,31 +13,18 @@ import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
 import { Intro, EVENTO_INTRO, introActiva } from "@/components/ui/Intro"
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Draggable } from 'gsap/Draggable'
-import { InertiaPlugin } from 'gsap/InertiaPlugin'
-import Matter from 'matter-js'
 
-gsap.registerPlugin(ScrollTrigger, Draggable, InertiaPlugin)
+gsap.registerPlugin(ScrollTrigger)
 
-// Piezas de la mesa de taller del hero
-const toyPieces = [
-  { label: 'web', lab: false },
-  { label: 'panel', lab: false },
-  { label: 'bot', lab: false },
-  { label: 'api', lab: false },
-  { label: 'juego', lab: true },
-]
-
-// Lo que incluye el producto webs+panel.
-// Los iconos salen todos de la misma rejilla generada de una vez, así que
-// comparten grosor de trazo, relieve y luz: es lo que hace que se lean como un
-// set y no como nueve iconos sueltos de sitios distintos.
-const productFeatures = [
-  { title: 'Web que convierte', copy: 'Pensada para que la visita acabe siendo cliente.', icono: 'web' },
-  { title: 'Panel de gestión', copy: 'Precios, horarios y contenidos, sin depender de nadie.', icono: 'panel' },
-  { title: 'Área de clientes', copy: 'Un espacio privado que fideliza.', icono: 'clientes' },
-  { title: 'Campañas', copy: 'Mensajes segmentados en el momento oportuno.', icono: 'campanas' },
-  { title: 'Automatización', copy: 'Respuestas y recordatorios sin intervenir.', icono: 'automatizacion' },
+// Lo que incluye el producto webs+panel. Cada función lleva su pantalla
+// ilustrada en ProductoEnEscena; antes eran iconos de relieve que se veían
+// anticuados al lado del resto de la web.
+const productFeatures: FuncionProducto[] = [
+  { title: 'Web que convierte', copy: 'Pensada para que la visita acabe siendo cliente.', pantalla: 'web' },
+  { title: 'Panel de gestión', copy: 'Precios, horarios y contenidos, sin depender de nadie.', pantalla: 'panel' },
+  { title: 'Área de clientes', copy: 'Un espacio privado que fideliza.', pantalla: 'clientes' },
+  { title: 'Campañas', copy: 'Mensajes segmentados en el momento oportuno.', pantalla: 'campanas' },
+  { title: 'Automatización', copy: 'Respuestas y recordatorios sin intervenir.', pantalla: 'automatizacion' },
 ]
 
 /**
@@ -101,116 +89,27 @@ const processSteps = [
   },
 ]
 
+const dosCifras = (n: number) => String(n).padStart(2, '0')
+
+/**
+ * La cabecera de cada sección: un número de capítulo con el punto de la n, el
+ * título y una entrada. El punto se enciende mientras la sección está en
+ * pantalla: es lo que cose la página como un recorrido de principio a fin.
+ */
+function Capitulo({ n, nombre, centrado = true }: { n: number; nombre: string; centrado?: boolean }) {
+  return (
+    <p className={`capitulo${centrado ? ' justify-center' : ''}`}>
+      <span className="capitulo-punto" aria-hidden="true" />
+      <span className="capitulo-n">{dosCifras(n)}</span>
+      <span aria-hidden="true">—</span>
+      {nombre}
+    </p>
+  )
+}
+
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null)
   const contactRef = useRef<HTMLDivElement>(null)
-  const trayRef = useRef<HTMLDivElement>(null)
-
-  // ========== MESA DE TALLER: al primer toque las piezas cobran físicas ==========
-  useEffect(() => {
-    const tray = trayRef.current
-    if (!tray) return
-
-    // Arrastre suave inicial; muere en cuanto entran las físicas
-    const draggables = Draggable.create('.toy-piece', {
-      type: 'x,y',
-      bounds: tray,
-      inertia: true,
-      edgeResistance: 0.7,
-      onPress() { this.target.classList.add('dragging') },
-      onRelease() { this.target.classList.remove('dragging') },
-    })
-
-    let engine: Matter.Engine | null = null
-    let raf = 0
-    let releaseOutside: (() => void) | null = null
-
-    const activatePhysics = () => {
-      draggables.forEach((d) => d.kill())
-
-      const trayRect = tray.getBoundingClientRect()
-      const w = trayRect.width
-      const h = trayRect.height
-      engine = Matter.Engine.create({ enableSleeping: true })
-      engine.gravity.y = 1.2
-
-      // ponytail: paredes fijadas al tamaño actual; un resize con físicas activas las desajusta
-      const grosor = 200
-      Matter.Composite.add(engine.world, [
-        Matter.Bodies.rectangle(w / 2, h + grosor / 2, w * 2, grosor, { isStatic: true }),
-        Matter.Bodies.rectangle(w / 2, -grosor / 2, w * 2, grosor, { isStatic: true }),
-        Matter.Bodies.rectangle(-grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
-        Matter.Bodies.rectangle(w + grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
-      ])
-
-      const items = Array.from(tray.querySelectorAll<HTMLElement>('.toy-piece')).map((el) => {
-        const r = el.getBoundingClientRect()
-        const cx = r.left - trayRect.left + r.width / 2
-        const cy = r.top - trayRect.top + r.height / 2
-        // Centro de la pieza en el flujo, sin el transform que dejó el arrastre
-        const baseX = cx - (Number(gsap.getProperty(el, 'x')) || 0)
-        const baseY = cy - (Number(gsap.getProperty(el, 'y')) || 0)
-        const body = Matter.Bodies.rectangle(cx, cy, r.width, r.height, {
-          chamfer: { radius: 13 },
-          restitution: 0.25,
-          friction: 0.6,
-          frictionAir: 0.02,
-        })
-        Matter.Composite.add(engine!.world, body)
-        return { el, body, baseX, baseY }
-      })
-
-      // Agarrar, lanzar y apilar con el puntero
-      const mouse = Matter.Mouse.create(tray)
-      const mouseConstraint = Matter.MouseConstraint.create(engine, {
-        mouse,
-        constraint: { stiffness: 0.2, damping: 0.1 },
-      })
-      Matter.Composite.add(engine.world, mouseConstraint)
-
-      Matter.Events.on(mouseConstraint, 'startdrag', (e) => {
-        const body = (e as unknown as { body?: Matter.Body }).body
-        items.find((i) => i.body === body)?.el.classList.add('dragging')
-      })
-      Matter.Events.on(mouseConstraint, 'enddrag', () => {
-        items.forEach((i) => i.el.classList.remove('dragging'))
-      })
-
-      // Si el puntero se suelta fuera de la bandeja, la pieza quedaría agarrada
-      releaseOutside = () => { mouse.button = -1 }
-      window.addEventListener('pointerup', releaseOutside)
-
-      let last = performance.now()
-      const step = (now: number) => {
-        Matter.Engine.update(engine!, Math.min(now - last, 33))
-        last = now
-        for (const { el, body, baseX, baseY } of items) {
-          el.style.transform =
-            `translate(${body.position.x - baseX}px, ${body.position.y - baseY}px) rotate(${body.angle}rad)`
-        }
-        raf = requestAnimationFrame(step)
-      }
-      raf = requestAnimationFrame(step)
-    }
-
-    const onFirstTouch = (e: PointerEvent) => {
-      if (!(e.target as Element).closest('.toy-piece')) return
-      tray.removeEventListener('pointerdown', onFirstTouch, true)
-      activatePhysics()
-    }
-    // Con reduced motion se quedan en arrastre simple, sin caída
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      tray.addEventListener('pointerdown', onFirstTouch, true)
-    }
-
-    return () => {
-      tray.removeEventListener('pointerdown', onFirstTouch, true)
-      if (releaseOutside) window.removeEventListener('pointerup', releaseOutside)
-      cancelAnimationFrame(raf)
-      if (engine) Matter.Engine.clear(engine)
-      draggables.forEach((d) => d.kill())
-    }
-  }, [])
 
   // ========== LA VÍA DEL RECORRIDO ==========
   // Va del centro del primer paso al centro del último. Depende del alto de
@@ -263,8 +162,7 @@ export default function Home() {
         .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
         .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
         .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.5 }, '-=0.35')
-        .fromTo('.toy-tray', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
-        .fromTo('.toy-piece', { opacity: 0, scale: 0.6, y: -40 }, { opacity: 1, scale: 1, y: 0, stagger: 0.07, duration: 0.6, ease: 'back.out(2)' }, '-=0.4')
+        .fromTo('.hero-bajar', { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.1')
 
       // Reveal genérico por sección: el contenido sube desde la profundidad,
       // tumbado unos grados hacia atrás, y se enfoca al ponerse de pie, como
@@ -346,6 +244,55 @@ export default function Home() {
         })
       }
 
+      // Cada capítulo enciende su punto mientras su sección está en pantalla.
+      gsap.utils.toArray<HTMLElement>('.capitulo').forEach((cap) => {
+        ScrollTrigger.create({
+          trigger: cap.closest('section') ?? cap,
+          start: 'top 70%',
+          end: 'bottom 35%',
+          toggleClass: { targets: cap, className: 'encendido' },
+        })
+      })
+
+      // El coste: cada frase está apagada y se enciende al pasar por la
+      // altura de lectura, con su punto en la línea de la izquierda. Va atado
+      // al scroll, así que si se vuelve atrás, se vuelve a apagar.
+      const lista = document.querySelector<HTMLElement>('.coste-lista')
+      if (lista) {
+        lista.classList.add('vivo')
+        const puntos = gsap.utils.toArray<HTMLElement>('.coste-punto')
+        puntos.forEach((punto, i) => {
+          const tl = gsap.timeline({
+            scrollTrigger: { trigger: punto, start: 'top 82%', end: 'top 52%', scrub: 0.4 },
+          })
+            .fromTo(punto.querySelector('.coste-frase'), { opacity: 0.16, x: -6 }, { opacity: 1, x: 0, ease: 'none' }, 0)
+            .fromTo(punto.querySelector('.coste-marca'), { scale: 0.5, opacity: 0.35 }, { scale: 1, opacity: 1, ease: 'none' }, 0)
+          // El tramo de línea que sale de la frase anterior llega a esta a la vez que se enciende.
+          const tramo = puntos[i - 1]?.querySelector('.coste-tramo > span')
+          if (tramo) tl.fromTo(tramo, { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
+        })
+      }
+
+      // Los compromisos se apilan: cada tarjeta se queda pegada arriba y la
+      // siguiente sube por encima. La de debajo se encoge y se oscurece un
+      // poco, para que se lea que queda atrás.
+      const cartas = gsap.utils.toArray<HTMLElement>('.pila-carta')
+      cartas.forEach((carta, i) => {
+        const siguiente = cartas[i + 1]
+        if (!siguiente) return
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: siguiente,
+            start: 'top bottom',
+            end: () => `top ${parseFloat(getComputedStyle(siguiente).top) || 96}px`,
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        })
+          .to(carta, { scale: 0.94, ease: 'none' }, 0)
+          .to(carta.querySelector('.pila-velo'), { opacity: 1, ease: 'none' }, 0)
+      })
+
       // Pills de nichos
       gsap.fromTo(
         '.nicho-pill',
@@ -396,7 +343,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div ref={containerRef} className="relative min-h-screen overflow-x-hidden">
+    <div ref={containerRef} className="relative min-h-screen overflow-x-clip">
       <Intro />
       <div className="ambiente" aria-hidden="true">
         <span className="ambiente-luz ambiente-a" />
@@ -410,9 +357,9 @@ export default function Home() {
 
       <main className="min-h-screen pt-20">
         {/* ========== HERO: MANIFIESTO + MESA DE TALLER ========== */}
-        <NeumorfSection className="max-w-6xl !pt-6 !pb-[72px] lg:!pt-32 md:!pb-28 relative">
+        <NeumorfSection className="max-w-6xl !pt-6 !pb-10 lg:!pt-16 md:!pb-12 relative flex flex-col lg:min-h-[calc(100svh-5rem)]">
           <div className="hero-fondo" aria-hidden="true" />
-          <div className="relative z-10 grid items-center gap-6 lg:gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
+          <div className="relative z-10 flex-1 grid items-center gap-6 lg:gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
             <div className="text-center lg:text-left">
               <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] text-balance mb-6">
                 {marca.descriptor}
@@ -493,18 +440,17 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Mesa de taller: las piezas se arrastran de verdad */}
-          {/* La mesa de piezas pasa a ser cristal: es lo único que flota sobre
-              el fondo del hero y por tanto el sitio natural del material.
-              Su contenido —las piezas arrastrables— sigue intacto. */}
-          <div ref={trayRef} className="toy-tray lq lq-vivo relative z-10 mt-12 md:mt-20 h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
-            {toyPieces.map((piece) => (
-              <span key={piece.label} className="toy-piece" data-lab={piece.lab || undefined}>
-                <span className="toy-dot" />
-                {piece.label}
-              </span>
-            ))}
-          </div>
+          {/* La invitación a bajar: el punto de la n cae por una línea hasta
+              la primera sección. Es el primer tramo del hilo que cose la
+              página. */}
+          <button
+            type="button"
+            className="hero-bajar relative z-10 mt-10 md:mt-14 self-center"
+            onClick={() => document.querySelector('#coste')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            <span className="hero-bajar-texto">Desliza</span>
+            <span className="hero-bajar-via" aria-hidden="true"><span /></span>
+          </button>
         </NeumorfSection>
 
         {/* ========== EL COSTE DE HACERLO A MANO ==========
@@ -512,26 +458,35 @@ export default function Home() {
             hace falta. Va justo después del titular para que quien llega se
             reconozca antes de que le vendamos nada. */}
         <NeumorfSection id="coste" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-14 md:mb-20">
+            <Capitulo n={1} nombre="El problema" />
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4 text-balance">
               {costeManual.titulo}
             </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
               {costeManual.entrada}
             </p>
           </div>
 
-          <div className="reveal grid gap-6 md:grid-cols-2">
-            {costeManual.puntos.map((punto) => (
-              <article key={punto.titulo} className="ng-card p-6">
-                <h3 className="font-display text-lg font-bold mb-2">{punto.titulo}</h3>
-                <p className="text-sm text-[var(--ink-soft)]">{punto.detalle}</p>
-              </article>
+          {/* Cuatro frases grandes, apagadas, que se encienden una a una al
+              bajar. Una línea a la izquierda las une y se va llenando de luz. */}
+          <ol className="coste-lista">
+            {costeManual.puntos.map((punto, i) => (
+              <li key={punto.titulo} className="coste-punto">
+                {i < costeManual.puntos.length - 1 && (
+                  <span className="coste-tramo" aria-hidden="true"><span /></span>
+                )}
+                <span className="coste-marca" aria-hidden="true" />
+                <div className="coste-frase">
+                  <h3 className="coste-titulo">{punto.titulo}</h3>
+                  <p className="coste-detalle">{punto.detalle}</p>
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
 
           {/* Se enciende palabra a palabra con el scroll (ver el efecto de entradas). */}
-          <p className="cierre-coste text-center font-display text-xl md:text-3xl font-bold tracking-tight mt-12 max-w-3xl mx-auto text-balance">
+          <p className="cierre-coste text-center font-display text-2xl md:text-4xl font-bold tracking-tight mt-20 md:mt-28 max-w-3xl mx-auto text-balance">
             {costeManual.cierre.split(' ').map((palabra, i) => (
               <span key={i} className="cierre-palabra">{palabra} </span>
             ))}
@@ -540,58 +495,23 @@ export default function Home() {
 
         {/* ========== LO QUE CONSTRUIMOS ========== */}
         <NeumorfSection id="construimos" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={2} nombre="La solución" />
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Lo que construimos
             </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Producto propio y desarrollo a medida. Lo que madura en nuestra
-              línea de I+D se incorpora a este catálogo.
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
+              Aplicaciones web con su panel de gestión, para negocios que
+              necesitan presencia profesional y autonomía en el día a día.
+              Producto propio y desarrollo a medida.
             </p>
           </div>
 
-          <div className="reveal ng-card p-6 md:p-10">
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="ng-badge text-emerald-600 dark:text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Disponible
-              </span>
-              <span className="ng-badge text-[var(--ink-soft)]">Panel de gestión</span>
-              <span className="ng-badge text-[var(--ink-soft)]">Automatización incluida</span>
-            </div>
+          <ProductoEnEscena funciones={productFeatures} />
 
-            <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
-              Aplicaciones web con panel de gestión
-            </h3>
-            <p className="text-[var(--ink-soft)] max-w-2xl mb-10">
-              Para empresas y negocios locales que necesitan una presencia digital
-              profesional y autonomía completa en la gestión diaria.
-            </p>
-
-            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
-              {productFeatures.map((feature) => (
-                <div key={feature.title} className="flex gap-3 items-start">
-                  {/* Cada tema carga su propio icono, y el cambio lo hace el CSS:
-                      así no hay parpadeo al alternar claro/oscuro ni hace falta
-                      que JavaScript decida nada. */}
-                  <span
-                    className="icono-feature"
-                    aria-hidden="true"
-                    style={{
-                      '--ico': `url(/images/iconos/${feature.icono}.webp)`,
-                      '--ico-oscuro': `url(/images/iconos-oscuro/${feature.icono}.webp)`,
-                    } as React.CSSProperties}
-                  />
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1">{feature.title}</h4>
-                    <p className="text-sm text-[var(--ink-soft)]">{feature.copy}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="nichos-section flex flex-wrap items-center gap-3">
-              <span className="text-sm text-[var(--ink-soft)] mr-1">Soluciones especializadas por sector:</span>
+          <div className="nichos-section mt-16 md:mt-24 flex flex-col items-center gap-4 text-center">
+            <span className="text-sm text-[var(--ink-soft)]">Soluciones especializadas por sector</span>
+            <div className="flex flex-wrap justify-center gap-2.5">
               {nichos.map((nicho) => (
                 <span key={nicho} className="nicho-pill ng-raised px-4 py-2 text-sm cursor-default">
                   {nicho}
@@ -605,25 +525,38 @@ export default function Home() {
             Va antes de Proyectos a propósito: aquí se promete y justo debajo
             está Salonio para confirmarlo. Un valor sin prueba es un eslogan. */}
         <NeumorfSection id="compromisos" className="max-w-6xl seccion-texturada">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={3} nombre="Compromisos" />
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Cómo trabajamos
             </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Cinco compromisos, cada uno con lo que lo demuestra al lado.
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
+              Cinco compromisos, y al lado de cada uno, lo que lo demuestra.
             </p>
           </div>
 
-          <div className="reveal grid gap-6 md:grid-cols-2">
-            {marca.valores.map((valor) => (
-              <article key={valor.titulo} className="ng-card p-6 flex flex-col gap-2">
-                <h3 className="font-display text-lg font-bold">{valor.titulo}</h3>
-                <p className="font-mono text-xs text-[var(--accent)]">
-                  {valor.prueba}
-                </p>
-              </article>
+          {/* Las tarjetas se apilan al bajar: cada una se queda arriba y la
+              siguiente sube por encima. */}
+          <ol className="pila">
+            {marca.valores.map((valor, i) => (
+              <li
+                key={valor.titulo}
+                className="pila-carta ng-card"
+                style={{ '--i': i } as React.CSSProperties}
+              >
+                <span className="pila-num">
+                  {dosCifras(i + 1)}
+                  <span>/ {dosCifras(marca.valores.length)}</span>
+                </span>
+                <h3 className="pila-titulo">{valor.titulo}</h3>
+                <div className="pila-prueba">
+                  <span className="pila-etiqueta">La prueba</span>
+                  <p>{valor.prueba}</p>
+                </div>
+                <span className="pila-velo" aria-hidden="true" />
+              </li>
             ))}
-          </div>
+          </ol>
         </NeumorfSection>
 
         {/* ========== PROYECTOS ==========
@@ -632,8 +565,9 @@ export default function Home() {
             de un vistazo y el panel pinta el elegido. El contenido está en
             `lib/content/proyectos.ts`: añadir uno es escribir un objeto. */}
         <NeumorfSection id="proyectos" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={4} nombre="Casos" />
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Proyectos
             </h2>
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
@@ -647,8 +581,9 @@ export default function Home() {
 
         {/* ========== EL PROCESO ========== */}
         <NeumorfSection id="proceso" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={5} nombre="El proceso" />
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Del primer contacto a la entrega
             </h2>
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
@@ -718,7 +653,8 @@ export default function Home() {
             <div className="reveal grid gap-12 md:grid-cols-2 items-start">
               <div className="space-y-6">
                 <div>
-                  <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-4">
+                  <Capitulo n={6} nombre="Hablemos" centrado={false} />
+                  <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
                     Hablemos de tu proyecto
                   </h2>
                   <p className="text-[var(--ink-soft)] leading-relaxed">

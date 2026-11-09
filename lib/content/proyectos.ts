@@ -7,7 +7,7 @@
  * pinta solo el elegido.
  *
  * Añadir el siguiente es escribir un objeto más. Si trae una pieza propia
- * —Salonio tiene su agenda animada, Regalado su comparador— se declara en
+ * —Regalado tiene su comparador— se declara en
  * `pieza` y el panel la coloca; lo demás sale igual para todos.
  */
 
@@ -16,7 +16,7 @@ export type Naturaleza = 'Producto propio' | 'Encargo de cliente'
 /** Las piezas interactivas que sabe pintar el panel. Es una lista cerrada a
  *  propósito: así el componente no recibe JSX desde los datos y el fichero se
  *  queda siendo contenido, no maquetación. */
-export type PiezaProyecto = 'agenda-salonio' | 'antes-despues-regalado'
+export type PiezaProyecto = 'antes-despues-regalado'
 
 export type Proyecto = {
   id: string
@@ -42,7 +42,6 @@ export const proyectos: Proyecto[] = [
     entradilla:
       'Los clientes reservan solos a cualquier hora. El dueño deja de coger el teléfono a mitad de un corte.',
     insignias: ['Peluquerías y barberías'],
-    pieza: 'agenda-salonio',
     capturas: [
       {
         src: '/images/salonio-web.webp',

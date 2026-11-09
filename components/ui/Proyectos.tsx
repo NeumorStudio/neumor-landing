@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { AgendaQueSeLlena } from '@/components/ui/AgendaQueSeLlena'
 import { AntesYDespues } from '@/components/ui/AntesYDespues'
 import { EscenarioCaso } from '@/components/ui/EscenarioCaso'
 import { proyectos, regaladoCifras } from '@/lib/content/proyectos'
@@ -162,12 +161,6 @@ export function Proyectos() {
           </h3>
           <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl">{p.entradilla}</p>
         </header>
-
-        {p.pieza === 'agenda-salonio' && (
-          <div className="caso-bloque" style={{ '--i': 1 } as React.CSSProperties}>
-            <AgendaQueSeLlena />
-          </div>
-        )}
 
         {p.pieza === 'antes-despues-regalado' && (
           <div className="caso-bloque" style={{ '--i': 1 } as React.CSSProperties}>
