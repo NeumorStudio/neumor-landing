@@ -8,7 +8,9 @@
 // serviría el logo viejo desde caché al menos una visita más.
 // v3 (29-07-2026): el símbolo pasa a ser el monograma NS.
 // v4 (10-10-2026): el símbolo pasa a ser la N modular azul.
-const CACHE_NAME = 'neumorstudio-v4'
+// v5 (07-11-2026): vuelve el NS, en su forma líquida.
+// v6 (09-11-2026): el logo pasa a ser la n del punto dentro.
+const CACHE_NAME = 'neumorstudio-v6'
 const OFFLINE_URL = '/'
 
 // Assets a pre-cachear
@@ -17,7 +19,6 @@ const PRECACHE_ASSETS = [
   '/manifest.webmanifest',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/images/logo-mark.png',
 ]
 
 // Instalar: pre-cachear assets críticos
