@@ -9,6 +9,7 @@ import { Navbar } from "@/components/ui/Navbar"
 import { LogoN } from "@/components/ui/LogoN"
 import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
+import { Intro, EVENTO_INTRO, introActiva } from "@/components/ui/Intro"
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Draggable } from 'gsap/Draggable'
@@ -44,6 +45,20 @@ const productFeatures = [
  * Salonio está en producción y la sección de abajo enseña el producto real.
  */
 
+
+// Motas de luz alrededor de la n de la portada. Cada una a su profundidad:
+// al inclinarse la escena se separan entre sí y del logo, y eso es lo que
+// hace que se lea como un espacio y no como una imagen plana.
+const motas = [
+  { x: 14, y: 22, z: 120, t: 4, d: 0 },
+  { x: 86, y: 18, z: -90, t: 6, d: 1.4 },
+  { x: 92, y: 58, z: 160, t: 3, d: 2.1 },
+  { x: 8, y: 66, z: -40, t: 5, d: 0.7 },
+  { x: 28, y: 90, z: 90, t: 3, d: 3.2 },
+  { x: 70, y: 86, z: -120, t: 7, d: 1.9 },
+  { x: 50, y: 6, z: 60, t: 3, d: 2.7 },
+  { x: 62, y: 34, z: 200, t: 2, d: 0.3 },
+]
 
 const nichos = [
   'Restaurantes', 'Salones', 'Clínicas',
@@ -228,9 +243,22 @@ export default function Home() {
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Hero: una sola entrada orquestada
-      gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .fromTo('.hero-logo', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.9 })
+      // Hero: una sola entrada orquestada. Si hay pantalla de carga, espera a
+      // que la web empiece a abrirse desde el punto y entra a la vez.
+      const conIntro = introActiva()
+      const entrada = gsap.timeline({ paused: conIntro, defaults: { ease: 'power3.out' } })
+      if (conIntro) {
+        // Viene de la pantalla de carga: va algo más rápida para que el
+        // titular se lea en cuanto se abre la web.
+        entrada.timeScale(1.35)
+        const empezar = () => { entrada.play() }
+        window.addEventListener(EVENTO_INTRO, empezar, { once: true })
+        // Por si la pantalla de carga no llegara a avisar.
+        gsap.delayedCall(5, empezar)
+      }
+      entrada
+        .fromTo('.hero-logo', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 1.1 })
+        .from('.hero-mota', { opacity: 0, stagger: 0.06, duration: 0.8 }, 0.3)
         .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.7')
         .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
         .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
@@ -238,21 +266,23 @@ export default function Home() {
         .fromTo('.toy-tray', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
         .fromTo('.toy-piece', { opacity: 0, scale: 0.6, y: -40 }, { opacity: 1, scale: 1, y: 0, stagger: 0.07, duration: 0.6, ease: 'back.out(2)' }, '-=0.4')
 
-      // Reveal genérico por sección: el contenido entra desenfocado y se
-      // enfoca, como si pasara detrás de un cristal. El filtro se quita al
+      // Reveal genérico por sección: el contenido sube desde la profundidad,
+      // tumbado unos grados hacia atrás, y se enfoca al ponerse de pie, como
+      // si pasara detrás de un cristal. El filtro y el giro se quitan al
       // acabar para no dejar capas de composición vivas.
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
         gsap.fromTo(
           el.children,
-          { opacity: 0, y: 28, filter: 'blur(8px)' },
+          { opacity: 0, y: 40, rotationX: 9, transformPerspective: 1200, transformOrigin: '50% 100%', filter: 'blur(8px)' },
           {
             opacity: 1,
             y: 0,
+            rotationX: 0,
             filter: 'blur(0px)',
             stagger: 0.08,
-            duration: 0.8,
+            duration: 0.9,
             ease: 'power3.out',
-            clearProps: 'filter',
+            clearProps: 'filter,transform',
             scrollTrigger: {
               trigger: el,
               start: 'top 80%',
@@ -269,12 +299,24 @@ export default function Home() {
         scrollTrigger: { start: 0, end: 'max', scrub: 0.3 },
       })
 
-      // La n de la portada se queda atrás al bajar: da profundidad sin moverse
-      // del sitio.
+      // La n de la portada se queda atrás al bajar y se aleja en profundidad,
+      // tumbándose hacia el fondo. Las motas, a distintas profundidades, se
+      // separan al girar: es el momento en que se nota que hay espacio.
       gsap.to('.hero-logo', {
         yPercent: 14, ease: 'none',
         scrollTrigger: { trigger: '.hero-logo', start: 'top top+=80', end: 'bottom top', scrub: true },
       })
+      gsap.to('.hero-profundidad', {
+        rotationX: 24, z: -160, ease: 'none',
+        scrollTrigger: { trigger: '.hero-logo', start: 'top top+=80', end: 'bottom top', scrub: 0.4 },
+      })
+
+      // La luz ambiente acompaña todo el scroll: dos focos, ámbar y frío como
+      // los de la n de cristal, que cruzan la página despacio. Es lo que hace
+      // que las secciones se lean como un mismo espacio.
+      gsap.timeline({ scrollTrigger: { start: 0, end: 'max', scrub: 1.2 } })
+        .fromTo('.ambiente-a', { xPercent: 0, yPercent: 0 }, { xPercent: -95, yPercent: 40, ease: 'sine.inOut' }, 0)
+        .fromTo('.ambiente-b', { xPercent: 0, yPercent: 0 }, { xPercent: 110, yPercent: -30, ease: 'sine.inOut' }, 0)
 
       // El cierre del coste se ilumina palabra a palabra al leerlo.
       gsap.fromTo('.cierre-palabra', { opacity: 0.18 }, {
@@ -320,16 +362,17 @@ export default function Home() {
       )
     }, containerRef)
 
-    // Con puntero fino, la n se inclina un poco hacia el ratón.
-    const hero = document.querySelector<HTMLElement>('.hero-logo')
+    // Con puntero fino, la escena de la n se inclina hacia el ratón. La luz
+    // de detrás y las motas van a otras profundidades, así que se mueven a
+    // distinto ritmo que el logo.
+    const hero = document.querySelector<HTMLElement>('.hero-escena')
     let quitarInclinacion = () => {}
     if (hero && window.matchMedia('(pointer: fine)').matches) {
-      const rx = gsap.quickTo(hero, 'rotationX', { duration: 0.8, ease: 'power3.out' })
-      const ry = gsap.quickTo(hero, 'rotationY', { duration: 0.8, ease: 'power3.out' })
-      gsap.set(hero, { transformPerspective: 900 })
+      const rx = gsap.quickTo(hero, 'rotationX', { duration: 0.9, ease: 'power3.out' })
+      const ry = gsap.quickTo(hero, 'rotationY', { duration: 0.9, ease: 'power3.out' })
       const mover = (e: PointerEvent) => {
-        rx(((e.clientY / window.innerHeight) - 0.5) * -8)
-        ry(((e.clientX / window.innerWidth) - 0.5) * 10)
+        rx(((e.clientY / window.innerHeight) - 0.5) * -12)
+        ry(((e.clientX / window.innerWidth) - 0.5) * 16)
       }
       window.addEventListener('pointermove', mover)
       quitarInclinacion = () => window.removeEventListener('pointermove', mover)
@@ -354,6 +397,11 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-x-hidden">
+      <Intro />
+      <div className="ambiente" aria-hidden="true">
+        <span className="ambiente-luz ambiente-a" />
+        <span className="ambiente-luz ambiente-b" />
+      </div>
       <BrilloLiquido />
       <div className="progreso" aria-hidden="true">
         <span className="progreso-linea" />
@@ -409,6 +457,9 @@ export default function Home() {
                 claro. El CSS elige cuál se ve, y la que no toca no se descarga.
                 Los tamaños cuentan con el aumento del CSS (.hero-n). */}
             <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-72 lg:max-w-none">
+             <div className="hero-profundidad">
+              <div className="hero-escena">
+              <span className="hero-halo" aria-hidden="true" />
               <Image
                 src="/marca/n-cristal-sin-fondo.webp"
                 alt=""
@@ -426,6 +477,19 @@ export default function Home() {
                 sizes="(min-width: 1024px) 65vw, 26rem"
                 className="hero-n hero-n-claro"
               />
+              {motas.map((m, i) => (
+                <span
+                  key={i}
+                  className="hero-mota"
+                  aria-hidden="true"
+                  style={{
+                    left: `${m.x}%`, top: `${m.y}%`,
+                    '--z': `${m.z}px`, '--t': `${m.t}px`, '--d': `${m.d}s`,
+                  } as React.CSSProperties}
+                />
+              ))}
+              </div>
+             </div>
             </div>
           </div>
 

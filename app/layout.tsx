@@ -30,6 +30,21 @@ const setInitialTheme = `
 })();
 `;
 
+// La pantalla de carga (components/ui/Intro.tsx) se decide aquí, antes del
+// primer pintado: una vez por visita, solo en la portada y nunca con
+// movimiento reducido. Decidirlo después, en React, haría que la web se viera
+// un instante y luego se tapara.
+const introInicial = `
+(() => {
+  try {
+    if (location.pathname !== '/') return;
+    if (sessionStorage.getItem('ns-intro')) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('con-intro');
+  } catch (err) {}
+})();
+`;
+
 // Registrar Service Worker
 const registerSW = `
 if ('serviceWorker' in navigator) {
@@ -110,6 +125,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} antialiased`}
       >
         <script dangerouslySetInnerHTML={{ __html: setInitialTheme }} />
+        <script dangerouslySetInnerHTML={{ __html: introInicial }} />
         <script dangerouslySetInnerHTML={{ __html: registerSW }} />
         <ThemeProvider>
           {children}

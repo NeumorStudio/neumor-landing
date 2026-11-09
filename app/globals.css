@@ -546,5 +546,504 @@ div[id] {
   .paso-nodo { font-size: 1rem; }
 }
 
-/* La n del hero se inclina hacia el ratón: que el 3D no la aplane. */
-.hero-logo { transform-style: preserve-3d; will-change: transform; }
+/* ===================== INMERSIVO =====================
+   La web como un solo espacio con profundidad. Cuatro piezas:
+   - La pantalla de carga: la n se dibuja y la web se abre desde el punto.
+   - La luz ambiente: dos focos fijos detrás de todo que cruzan la página con
+     el scroll, para que las secciones se lean como un mismo sitio.
+   - La portada en capas: halo detrás, la n en medio y motas de luz a varias
+     profundidades. Al inclinarse o al alejarse con el scroll, se separan.
+   - Los casos: barra con número, selector de pastilla y escena 3D.
+   Todo lo que se mueve se apaga con prefers-reduced-motion. */
+
+/* ---------- Pantalla de carga ---------- */
+.intro-capa { display: none; }
+
+html.con-intro .intro-capa {
+  --r: 0px;
+  --borde: 0;
+  --cx: 50%;
+  --cy: 50%;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+  /* El color de la web, y encima un aro ámbar que va con el borde del agujero
+     al abrirse: es la luz del punto destapando la página. */
+  background-color: var(--background);
+  background-image: radial-gradient(circle at var(--cx) var(--cy),
+    transparent var(--r),
+    rgba(242, 169, 59, var(--borde)) calc(var(--r) + 1px),
+    transparent calc(var(--r) + 5rem));
+  -webkit-mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent var(--r), #000 calc(var(--r) + 1px));
+  mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent var(--r), #000 calc(var(--r) + 1px));
+  /* Red de seguridad: si el JavaScript no llega a abrirla, se retira sola. */
+  animation: intro-retirada 0.5s ease 4.5s forwards;
+}
+@keyframes intro-retirada { to { opacity: 0; visibility: hidden; } }
+
+.intro-marca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+.intro-simbolo {
+  position: relative;
+  width: clamp(84px, 11vw, 124px);
+  aspect-ratio: 57 / 58;
+}
+.intro-n {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* El arco se traza de la pata izquierda a la derecha. La separación del
+   discontinuo es mayor que el trazo para que el remate redondo no asome antes
+   de tiempo. */
+.intro-arco {
+  stroke-dasharray: 1 1.2;
+  stroke-dashoffset: 1.1;
+  animation: intro-traza 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.12s forwards;
+}
+@keyframes intro-traza { to { stroke-dashoffset: 0; } }
+
+.intro-punto {
+  fill: #f2a93b;
+  transform-box: fill-box;
+  transform-origin: center;
+  scale: 0;
+  animation: intro-punto 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.78s forwards;
+}
+html:not(.dark) .intro-punto { fill: #e8962a; }
+@keyframes intro-punto { to { scale: 1; } }
+
+/* El brillo del punto: va detrás del SVG, centrado donde cae el punto
+   (cy 62 en una caja de 21 a 79, el 70,7 %). */
+.intro-luz {
+  position: absolute;
+  left: 50%;
+  top: 70.7%;
+  width: 90%;
+  aspect-ratio: 1;
+  margin: -45% 0 0 -45%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.5), rgba(242, 169, 59, 0));
+  opacity: 0;
+  scale: 0.4;
+  animation: intro-luz 0.9s ease-out 0.85s forwards;
+}
+@keyframes intro-luz { to { opacity: 1; scale: 1; } }
+
+.intro-nombre {
+  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.intro-nombre > span {
+  display: block;
+  opacity: 0;
+  translate: 0 8px;
+  animation: intro-nombre 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.62s forwards;
+}
+@keyframes intro-nombre { to { opacity: 1; translate: 0 0; } }
+
+/* ---------- Luz ambiente ----------
+   Fija detrás de todo (z-index negativo: queda por encima del fondo de la
+   página y por debajo del contenido). Solo se ve en los huecos entre tarjetas,
+   que es justo donde una página se nota hecha de piezas sueltas. */
+.ambiente {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ambiente-luz {
+  position: absolute;
+  width: 75vmax;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  will-change: transform;
+}
+.ambiente-a {
+  left: 50%;
+  top: 5%;
+  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.09), rgba(242, 169, 59, 0));
+}
+.ambiente-b {
+  left: -30%;
+  top: 40%;
+  background: radial-gradient(closest-side, rgba(120, 150, 235, 0.06), rgba(120, 150, 235, 0));
+}
+html:not(.dark) .ambiente-a {
+  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.12), rgba(242, 169, 59, 0));
+}
+html:not(.dark) .ambiente-b {
+  background: radial-gradient(closest-side, rgba(255, 210, 140, 0.16), rgba(255, 210, 140, 0));
+}
+
+/* ---------- La portada en capas ----------
+   Tres envoltorios para que cada movimiento tenga el suyo y no se pisen:
+   .hero-logo (perspectiva, parallax y entrada) > .hero-profundidad (se aleja
+   con el scroll) > .hero-escena (se inclina hacia el ratón). */
+.hero-logo {
+  position: relative;
+  perspective: 1000px;
+}
+.hero-profundidad,
+.hero-escena {
+  position: relative;
+  transform-style: preserve-3d;
+}
+.hero-escena { will-change: transform; }
+
+/* La luz de detrás de la n, muy al fondo: al inclinarse, se queda atrás. */
+.hero-halo {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side at 40% 40%, rgba(242, 169, 59, 0.26), rgba(242, 169, 59, 0)),
+    radial-gradient(closest-side at 64% 64%, rgba(120, 150, 235, 0.18), rgba(120, 150, 235, 0));
+  transform: translateZ(-240px) scale(1.3);
+  pointer-events: none;
+}
+html:not(.dark) .hero-halo {
+  background:
+    radial-gradient(closest-side at 40% 40%, rgba(242, 169, 59, 0.22), rgba(242, 169, 59, 0)),
+    radial-gradient(closest-side at 64% 64%, rgba(255, 214, 160, 0.3), rgba(255, 214, 160, 0));
+}
+
+.hero-mota {
+  position: absolute;
+  width: var(--t);
+  height: var(--t);
+  margin: calc(var(--t) / -2) 0 0 calc(var(--t) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe3b3 0%, #f2a93b 55%, rgba(242, 169, 59, 0) 72%);
+  box-shadow: 0 0 calc(var(--t) * 2.5) rgba(242, 169, 59, 0.5);
+  opacity: 0.75;
+  transform: translateZ(var(--z));
+  animation: mota-flota 7s ease-in-out var(--d) infinite alternate;
+  pointer-events: none;
+}
+html:not(.dark) .hero-mota {
+  background: radial-gradient(circle, #f2a93b 0%, #c97a12 55%, rgba(201, 122, 18, 0) 72%);
+  box-shadow: 0 0 8px rgba(201, 122, 18, 0.3);
+  opacity: 0.55;
+}
+@keyframes mota-flota {
+  from { translate: 0 0; }
+  to { translate: 6px -16px; }
+}
+
+/* ---------- Los casos ---------- */
+.casos-barra {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+.casos-contador {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  perspective: 400px;
+}
+.casos-actual {
+  display: inline-block;
+  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  transform-origin: 50% 100%;
+  animation: casos-numero 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes casos-numero {
+  from { opacity: 0; transform: translateY(35%) rotateX(-70deg); }
+  to { opacity: 1; transform: none; }
+}
+.casos-total {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+}
+
+/* El selector es un carril hundido y la elegida, una pastilla en relieve que
+   se desliza hasta ella. */
+.casos-selector {
+  position: relative;
+  justify-self: center;
+  display: flex;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.35rem;
+  border-radius: 999px;
+  background: var(--bg-deep);
+  box-shadow: inset 0 2px 5px var(--engrave), inset 0 -1px 0 var(--engrave-light);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.casos-selector::-webkit-scrollbar { display: none; }
+.casos-pastilla {
+  position: absolute;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  left: 0;
+  width: var(--w, 0px);
+  transform: translateX(var(--x, 0px));
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--card-top), var(--card-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--card-rim),
+    0 1px 2px var(--ambient),
+    0 8px 18px -6px var(--card-drop);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.casos-pestana {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.55rem 1.3rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-align: left;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.casos-pestana-nombre {
+  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  transition: color 0.3s ease;
+}
+.casos-pestana-tipo {
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+.casos-pestana[aria-selected="true"] { color: var(--foreground); }
+.casos-pestana[aria-selected="true"] .casos-pestana-nombre { color: var(--accent); }
+.casos-pestana:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.casos-flechas {
+  display: flex;
+  gap: 0.6rem;
+}
+.casos-flecha {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+.casos-flecha svg { width: 1.1rem; height: 1.1rem; }
+
+@media (max-width: 767px) {
+  .casos-barra { grid-template-columns: minmax(0, 1fr) auto; }
+  .casos-selector {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+  }
+}
+
+.caso { padding: 1.5rem; }
+.caso > * + * { margin-top: 2.5rem; }
+@media (min-width: 768px) {
+  .caso { padding: 2.5rem; }
+  .caso > * + * { margin-top: 3rem; }
+}
+
+/* Al cambiar de caso, el panel llega de lado girando un poco en 3D, en el
+   sentido en que se avanza, y lo de dentro entra en cascada. */
+.caso[data-sentido="sig"] { --desde: 70px; --giro: -9deg; }
+.caso[data-sentido="ant"] { --desde: -70px; --giro: 9deg; }
+.caso[data-sentido] {
+  animation: caso-entra 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes caso-entra {
+  from {
+    opacity: 0;
+    transform: perspective(1600px) translateX(var(--desde)) rotateY(var(--giro));
+    filter: blur(6px);
+  }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.caso[data-sentido] > * {
+  animation: caso-pieza 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(140ms + var(--i, 0) * 80ms);
+}
+.caso[data-sentido] .caso-funciones li {
+  animation: caso-pieza 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(400ms + var(--j, 0) * 55ms);
+}
+@keyframes caso-pieza {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+
+.caso-funciones {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem 2rem;
+}
+@media (min-width: 640px) { .caso-funciones { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .caso-funciones { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.caso-funciones li {
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+.caso-num {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+.caso-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+/* ---------- La escena del caso ----------
+   El navegador ocupa el 82 % del ancho y el móvil se le monta por delante en
+   la esquina de abajo, 90 px más cerca. La caja guarda la proporción del
+   conjunto (50:31) para que no salte al cargar las imágenes. */
+.escenario {
+  margin: 0;
+  perspective: 1700px;
+  perspective-origin: 50% 40%;
+}
+.escenario-scroll {
+  transform-style: preserve-3d;
+  transform: rotateY(-9deg) rotateX(6deg);
+}
+.escenario-raton {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 50 / 31;
+  transform-style: preserve-3d;
+}
+/* La luz de la marca detrás del conjunto y su sombra en el suelo. */
+.escenario-raton::before {
+  content: '';
+  position: absolute;
+  inset: -8% 0 0 20%;
+  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.16), rgba(242, 169, 59, 0));
+  transform: translateZ(-140px);
+  pointer-events: none;
+}
+.escenario-raton::after {
+  content: '';
+  position: absolute;
+  left: 4%;
+  right: 2%;
+  bottom: -7%;
+  height: 14%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0));
+  transform: translateZ(-40px);
+  pointer-events: none;
+}
+html:not(.dark) .escenario-raton::after {
+  background: radial-gradient(closest-side, rgba(26, 26, 32, 0.16), rgba(26, 26, 32, 0));
+}
+.escenario-navegador {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 82%;
+  overflow: hidden;
+  border-radius: clamp(8px, 1.2vw, 14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d0e12;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 40px 80px -24px rgba(0, 0, 0, 0.55);
+  transform: translateZ(0);
+}
+html:not(.dark) .escenario-navegador {
+  border-color: rgba(26, 26, 32, 0.1);
+  box-shadow: 0 2px 6px rgba(26, 26, 32, 0.08), 0 40px 70px -24px rgba(26, 26, 32, 0.35);
+}
+.escenario-barra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: clamp(20px, 2.8vw, 32px);
+  padding: 0 clamp(8px, 1.2vw, 14px);
+  background: #1b1c23;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.escenario-barra i {
+  width: clamp(5px, 0.7vw, 9px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+}
+.escenario-barra span {
+  margin: 0 auto;
+  padding: 1px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: clamp(7px, 0.85vw, 11px);
+}
+.escenario-navegador img,
+.escenario-movil img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.escenario-movil {
+  position: absolute;
+  right: 4%;
+  bottom: 0;
+  width: 22%;
+  padding: clamp(3px, 0.6vw, 7px);
+  border-radius: clamp(14px, 2.6vw, 30px);
+  background: linear-gradient(160deg, #2a2c35, #0b0c10);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 30px 60px -18px rgba(0, 0, 0, 0.6);
+  transform: translateZ(90px);
+}
+.escenario-movil img { border-radius: clamp(10px, 2.1vw, 24px); }
+.escenario-pie {
+  margin-top: 2rem;
+  text-align: center;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mota { animation: none; }
+  .casos-actual,
+  .caso[data-sentido],
+  .caso[data-sentido] > *,
+  .caso[data-sentido] .caso-funciones li { animation: none; }
+  .casos-pastilla { transition: none; }
+}
