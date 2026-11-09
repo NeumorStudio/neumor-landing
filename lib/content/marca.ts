@@ -98,7 +98,7 @@ export const contacto = {
   redes: {
     instagram: "https://www.instagram.com/neumorstudio/",
     tiktok: "https://www.tiktok.com/@neumorstudio",
-    x: "https://x.com/neumorstudio",
+    // X queda fuera mientras no se recupere la cuenta @neumorstudio.
   },
 } as const;
 
