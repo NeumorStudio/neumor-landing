@@ -438,3 +438,113 @@ div[id] {
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* ========== MOVIMIENTO DE MARCA ==========
+   Todo sale de la n: el punto ámbar es la luz que avanza. Lo mueve GSAP desde
+   app/page.tsx, y sin JavaScript o con movimiento reducido se ve el estado
+   final, quieto. */
+
+/* Barra de lectura: una línea ámbar arriba que crece con el scroll. La punta
+   brilla más, como el punto. */
+.progreso {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+}
+.progreso-linea {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(242, 169, 59, 0) 0%, #f2a93b 75%, #ffd08a 100%);
+  box-shadow: 0 0 10px rgba(242, 169, 59, 0.5);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+
+/* El recorrido: tres pasos unidos por una vía vertical. */
+.recorrido {
+  --nodo: 3rem;
+  position: relative;
+}
+.recorrido-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+.paso {
+  display: grid;
+  grid-template-columns: var(--nodo) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.paso-nodo {
+  position: relative;
+  z-index: 2;
+  width: var(--nodo);
+  height: var(--nodo);
+  font-size: 0.9rem;
+  transition: color 0.4s ease, background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.recorrido-via {
+  position: absolute;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--edge-border);
+  z-index: 1;
+}
+.recorrido-luz {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(242, 169, 59, 0.1), #f2a93b);
+  box-shadow: 0 0 12px rgba(242, 169, 59, 0.45);
+  transform-origin: 50% 0;
+}
+.recorrido-punto {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffd08a, #f2a93b 55%, #e8922a);
+  box-shadow: 0 0 0 4px rgba(242, 169, 59, 0.16), 0 0 18px 4px rgba(242, 169, 59, 0.5);
+}
+.recorrido:not(.vivo) .recorrido-punto { display: none; }
+
+/* Con JavaScript, cada paso espera apagado a que llegue la luz. */
+.recorrido.vivo .recorrido-luz { transform: scaleY(0); }
+.recorrido.vivo .paso-tarjeta {
+  opacity: 0.4;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.recorrido.vivo .paso.activo .paso-tarjeta {
+  opacity: 1;
+  transform: none;
+}
+.paso.activo .paso-nodo {
+  color: var(--accent-ink);
+  background: linear-gradient(180deg, #ffc970, #f2a93b);
+  border-color: rgba(242, 169, 59, 0.75);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 0 4px rgba(242, 169, 59, 0.14),
+    0 0 26px rgba(242, 169, 59, 0.45);
+}
+
+@media (min-width: 768px) {
+  .recorrido { --nodo: 3.5rem; }
+  .recorrido-lista { gap: 2.25rem; }
+  .paso { gap: 1.75rem; }
+  .paso-nodo { font-size: 1rem; }
+}
+
+/* La n del hero se inclina hacia el ratón: que el 3D no la aplane. */
+.hero-logo { transform-style: preserve-3d; will-change: transform; }

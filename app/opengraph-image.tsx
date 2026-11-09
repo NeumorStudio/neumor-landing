@@ -46,7 +46,7 @@ export default function OpenGraphImage() {
           style={{ position: 'absolute', top: -5, right: -40 }}
         />
 
-        {/* Símbolo + wordmark: neumor▪ / STUDIO, el mismo del pie de la web */}
+        {/* Símbolo + nombre: la misma firma que la barra y el pie de la web */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -64,29 +64,7 @@ export default function OpenGraphImage() {
               letterSpacing: '-0.02em',
             }}
           >
-            neumor
-          </span>
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              backgroundColor: '#f2a93b',
-              borderRadius: 2,
-              marginLeft: 4,
-              marginTop: 16,
-            }}
-          />
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 300,
-              color: '#afaeb9',
-              letterSpacing: '0.42em',
-              marginLeft: 16,
-              marginTop: 12,
-            }}
-          >
-            STUDIO
+            NeumorStudio
           </span>
         </div>
 

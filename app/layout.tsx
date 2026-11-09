@@ -84,7 +84,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NeumorStudio | Software a medida para negocios',
     description: 'Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación y atención automática.',
-    creator: '@neumorstudio',
   },
   icons: {
     icon: [

@@ -6,6 +6,7 @@ import { ContactForm } from "@/components/forms/ContactForm"
 import { Proyectos } from "@/components/ui/Proyectos"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
+import { LogoN } from "@/components/ui/LogoN"
 import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
 import gsap from 'gsap'
@@ -196,6 +197,31 @@ export default function Home() {
     }
   }, [])
 
+  // ========== LA VÍA DEL RECORRIDO ==========
+  // Va del centro del primer paso al centro del último. Depende del alto de
+  // las tarjetas, así que se mide en vez de fijarla en el CSS.
+  useEffect(() => {
+    const via = document.querySelector<HTMLElement>('.recorrido-via')
+    const nodos = document.querySelectorAll<HTMLElement>('.paso-nodo')
+    const caja = via?.parentElement
+    if (!via || !caja || nodos.length < 2) return
+    let primera = true
+    const medir = () => {
+      const a = nodos[0].getBoundingClientRect()
+      const b = nodos[nodos.length - 1].getBoundingClientRect()
+      const c = caja.getBoundingClientRect()
+      via.style.top = `${a.top - c.top + a.height / 2}px`
+      via.style.left = `${a.left - c.left + a.width / 2}px`
+      via.style.height = `${b.top - a.top}px`
+      if (!primera) ScrollTrigger.refresh()
+      primera = false
+    }
+    medir()
+    const ro = new ResizeObserver(medir)
+    ro.observe(caja)
+    return () => ro.disconnect()
+  }, [])
+
   // ========== ENTRADAS Y REVEALS ==========
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -212,17 +238,21 @@ export default function Home() {
         .fromTo('.toy-tray', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
         .fromTo('.toy-piece', { opacity: 0, scale: 0.6, y: -40 }, { opacity: 1, scale: 1, y: 0, stagger: 0.07, duration: 0.6, ease: 'back.out(2)' }, '-=0.4')
 
-      // Reveal genérico por sección
+      // Reveal genérico por sección: el contenido entra desenfocado y se
+      // enfoca, como si pasara detrás de un cristal. El filtro se quita al
+      // acabar para no dejar capas de composición vivas.
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
         gsap.fromTo(
           el.children,
-          { opacity: 0, y: 28 },
+          { opacity: 0, y: 28, filter: 'blur(8px)' },
           {
             opacity: 1,
             y: 0,
+            filter: 'blur(0px)',
             stagger: 0.08,
-            duration: 0.7,
-            ease: 'power2.out',
+            duration: 0.8,
+            ease: 'power3.out',
+            clearProps: 'filter',
             scrollTrigger: {
               trigger: el,
               start: 'top 80%',
@@ -231,6 +261,48 @@ export default function Home() {
           }
         )
       })
+
+      // Barra de lectura: una línea ámbar arriba que avanza con el scroll,
+      // con el punto de la n en la punta.
+      gsap.fromTo('.progreso-linea', { scaleX: 0 }, {
+        scaleX: 1, ease: 'none',
+        scrollTrigger: { start: 0, end: 'max', scrub: 0.3 },
+      })
+
+      // La n de la portada se queda atrás al bajar: da profundidad sin moverse
+      // del sitio.
+      gsap.to('.hero-logo', {
+        yPercent: 14, ease: 'none',
+        scrollTrigger: { trigger: '.hero-logo', start: 'top top+=80', end: 'bottom top', scrub: true },
+      })
+
+      // El cierre del coste se ilumina palabra a palabra al leerlo.
+      gsap.fromTo('.cierre-palabra', { opacity: 0.18 }, {
+        opacity: 1, stagger: 0.12, ease: 'none',
+        scrollTrigger: { trigger: '.cierre-coste', start: 'top 85%', end: 'top 45%', scrub: 0.4 },
+      })
+
+      // El recorrido: el punto ámbar baja por la vía al ritmo del scroll y va
+      // encendiendo cada paso al llegar. Siempre está a la altura del 60 % de
+      // la pantalla, así que cada paso se enciende justo cuando se lee.
+      const via = document.querySelector<HTMLElement>('.recorrido-via')
+      if (via) {
+        // Sin esta clase el recorrido se ve completo: si el JavaScript no
+        // llega, los pasos no se quedan apagados.
+        via.parentElement?.classList.add('vivo')
+        gsap.timeline({
+          scrollTrigger: { trigger: via, start: 'top 60%', end: 'bottom 60%', scrub: 0.5, invalidateOnRefresh: true },
+        })
+          .fromTo('.recorrido-luz', { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
+          .fromTo('.recorrido-punto', { y: 0 }, { y: () => via.offsetHeight, ease: 'none' }, 0)
+        gsap.utils.toArray<HTMLElement>('.paso').forEach((paso) => {
+          ScrollTrigger.create({
+            trigger: paso.querySelector('.paso-nodo'),
+            start: 'center 60%',
+            toggleClass: { targets: paso, className: 'activo' },
+          })
+        })
+      }
 
       // Pills de nichos
       gsap.fromTo(
@@ -248,7 +320,32 @@ export default function Home() {
       )
     }, containerRef)
 
-    return () => ctx.revert()
+    // Con puntero fino, la n se inclina un poco hacia el ratón.
+    const hero = document.querySelector<HTMLElement>('.hero-logo')
+    let quitarInclinacion = () => {}
+    if (hero && window.matchMedia('(pointer: fine)').matches) {
+      const rx = gsap.quickTo(hero, 'rotationX', { duration: 0.8, ease: 'power3.out' })
+      const ry = gsap.quickTo(hero, 'rotationY', { duration: 0.8, ease: 'power3.out' })
+      gsap.set(hero, { transformPerspective: 900 })
+      const mover = (e: PointerEvent) => {
+        rx(((e.clientY / window.innerHeight) - 0.5) * -8)
+        ry(((e.clientX / window.innerWidth) - 0.5) * 10)
+      }
+      window.addEventListener('pointermove', mover)
+      quitarInclinacion = () => window.removeEventListener('pointermove', mover)
+    }
+
+    return () => {
+      quitarInclinacion()
+      ctx.revert()
+      document.querySelector('.recorrido')?.classList.remove('vivo')
+    }
+  }, [])
+
+  // Sin movimiento, el recorrido se ve ya completo.
+  useEffect(() => {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    document.querySelectorAll('.paso').forEach((p) => p.classList.add('activo'))
   }, [])
 
   useEffect(() => {
@@ -258,6 +355,9 @@ export default function Home() {
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-x-hidden">
       <BrilloLiquido />
+      <div className="progreso" aria-hidden="true">
+        <span className="progreso-linea" />
+      </div>
       <Navbar />
 
       <main className="min-h-screen pt-20">
@@ -366,8 +466,11 @@ export default function Home() {
             ))}
           </div>
 
-          <p className="reveal text-center font-display text-xl md:text-2xl font-bold tracking-tight mt-10">
-            {costeManual.cierre}
+          {/* Se enciende palabra a palabra con el scroll (ver el efecto de entradas). */}
+          <p className="cierre-coste text-center font-display text-xl md:text-3xl font-bold tracking-tight mt-12 max-w-3xl mx-auto text-balance">
+            {costeManual.cierre.split(' ').map((palabra, i) => (
+              <span key={i} className="cierre-palabra">{palabra} </span>
+            ))}
           </p>
         </NeumorfSection>
 
@@ -490,16 +593,32 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="reveal grid gap-6 md:grid-cols-3">
+          {/* El recorrido. Una vía vertical une los tres pasos y el punto
+              ámbar de la n baja por ella al hacer scroll, encendiendo cada
+              paso al pasar. Es el logo contando el proceso. */}
+          <div className="recorrido max-w-3xl mx-auto">
+            <div className="recorrido-via" aria-hidden="true">
+              <span className="recorrido-luz" />
+              <span className="recorrido-punto" />
+            </div>
+            <ol className="recorrido-lista">
             {processSteps.map((step) => (
-              <div key={step.day} className="ng-card p-6">
-                <span className="step-key mb-4">{step.day}</span>
-                <h3 className="font-display text-lg font-bold mt-4 mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-[var(--ink-soft)]">{step.copy}</p>
-              </div>
+              <li key={step.day} className="paso">
+                <span className="paso-nodo step-key" aria-hidden="true">
+                  {step.day.padStart(2, '0')}
+                </span>
+                <div className="paso-tarjeta ng-card p-6 md:p-7">
+                  <p className="font-mono text-[0.68rem] tracking-[0.2em] uppercase text-[var(--ink-soft)] mb-2">
+                    Paso {step.day} de {processSteps.length}
+                  </p>
+                  <h3 className="font-display text-xl md:text-2xl font-bold tracking-tight mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm md:text-base text-[var(--ink-soft)]">{step.copy}</p>
+                </div>
+              </li>
             ))}
+            </ol>
           </div>
 
         </NeumorfSection>
@@ -576,18 +695,10 @@ export default function Home() {
         {/* ========== FOOTER ========== */}
         <footer className="border-t border-[var(--edge-border)]">
           <NeumorfSection className="!py-8 md:!py-10 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
-            {/* Wordmark: neumor▪ / STUDIO */}
-            <div className="flex flex-col items-center md:items-start gap-1">
-              <span className="font-display text-2xl font-bold tracking-tight leading-none text-[var(--foreground)]">
-                neumor
-                <span
-                  className="inline-block w-[0.16em] h-[0.16em] ml-[0.08em] rounded-[1px] bg-[var(--accent)]"
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="text-[0.6rem] font-light uppercase tracking-[0.45em] ml-[0.2em]">
-                Studio
-              </span>
+            {/* La misma firma que la barra: la n y el nombre. */}
+            <div className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight text-[var(--foreground)]">
+              <LogoN className="w-7 h-7" />
+              NeumorStudio
             </div>
 
             <span>&copy; {new Date().getFullYear()} NeumorStudio — Desarrollo de software</span>
@@ -612,17 +723,6 @@ export default function Home() {
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
-                </svg>
-              </a>
-              <a
-                href="https://x.com/neumorstudio"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ng-raised w-10 h-10 !p-0 flex items-center justify-center"
-                aria-label="X"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
             </div>
