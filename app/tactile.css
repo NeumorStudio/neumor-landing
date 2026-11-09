@@ -161,6 +161,25 @@
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
+/* El borde superior de iOS 26: sin banda, pero en cuanto hay scroll el
+   contenido se desvanece al pasar por debajo de las cápsulas, en vez de
+   leerse entre ellas. */
+.ng-navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -1.75rem;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    color-mix(in srgb, var(--background) 88%, transparent) 50%,
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.ng-navbar.scrolled::before { opacity: 1; }
 
 /* Cápsula de cada elemento del menú.
    Lleva el mismo material que el resto del sistema pero con menos desenfoque:

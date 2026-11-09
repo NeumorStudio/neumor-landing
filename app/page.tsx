@@ -17,14 +17,39 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 gsap.registerPlugin(ScrollTrigger)
 
 // Lo que incluye el producto webs+panel. Cada función lleva su pantalla
-// ilustrada en ProductoEnEscena; antes eran iconos de relieve que se veían
-// anticuados al lado del resto de la web.
+// ilustrada en ProductoEnEscena, todas del mismo ejemplo inventado (Olmo, un
+// restaurante), y una línea que cuenta qué se ve en ella.
 const productFeatures: FuncionProducto[] = [
-  { title: 'Web que convierte', copy: 'Pensada para que la visita acabe siendo cliente.', pantalla: 'web' },
-  { title: 'Panel de gestión', copy: 'Precios, horarios y contenidos, sin depender de nadie.', pantalla: 'panel' },
-  { title: 'Área de clientes', copy: 'Un espacio privado que fideliza.', pantalla: 'clientes' },
-  { title: 'Campañas', copy: 'Mensajes segmentados en el momento oportuno.', pantalla: 'campanas' },
-  { title: 'Automatización', copy: 'Respuestas y recordatorios sin intervenir.', pantalla: 'automatizacion' },
+  {
+    title: 'Web que convierte',
+    copy: 'Pensada para que la visita acabe siendo cliente.',
+    ejemplo: 'La portada de Olmo con la reserva a mano: se elige día y hora, y entra confirmada.',
+    pantalla: 'web',
+  },
+  {
+    title: 'Panel de gestión',
+    copy: 'Precios, horarios y contenidos, sin depender de nadie.',
+    ejemplo: 'El sábado de un vistazo: reservas, comensales, ocupación y quién llega ahora.',
+    pantalla: 'panel',
+  },
+  {
+    title: 'Área de clientes',
+    copy: 'Un espacio privado que fideliza.',
+    ejemplo: 'Lucía ve su próxima reserva, la cambia sin llamar y lleva la cuenta de sus sellos.',
+    pantalla: 'clientes',
+  },
+  {
+    title: 'Campañas',
+    copy: 'Mensajes segmentados en el momento oportuno.',
+    ejemplo: 'Un mensaje a quien lleva dos meses sin venir. Lucía contesta y su mesa queda reservada.',
+    pantalla: 'campanas',
+  },
+  {
+    title: 'Automatización',
+    copy: 'Respuestas y recordatorios sin intervenir.',
+    ejemplo: 'Con cada reserva salen solos la confirmación, el recordatorio y la petición de reseña.',
+    pantalla: 'automatizacion',
+  },
 ]
 
 /**
@@ -162,7 +187,6 @@ export default function Home() {
         .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
         .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
         .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.5 }, '-=0.35')
-        .fromTo('.hero-bajar', { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.1')
 
       // Reveal genérico por sección: el contenido sube desde la profundidad,
       // tumbado unos grados hacia atrás, y se enfoca al ponerse de pie, como
@@ -440,17 +464,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* La invitación a bajar: el punto de la n cae por una línea hasta
-              la primera sección. Es el primer tramo del hilo que cose la
-              página. */}
-          <button
-            type="button"
-            className="hero-bajar relative z-10 mt-10 md:mt-14 self-center"
-            onClick={() => document.querySelector('#coste')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            <span className="hero-bajar-texto">Desliza</span>
-            <span className="hero-bajar-via" aria-hidden="true"><span /></span>
-          </button>
         </NeumorfSection>
 
         {/* ========== EL COSTE DE HACERLO A MANO ==========
