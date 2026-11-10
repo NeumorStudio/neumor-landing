@@ -16,7 +16,7 @@ export const contentType = 'image/png'
 // El mismo símbolo que la barra de navegación y el favicon. Se incrusta en la
 // imagen para que quien vea la previsualización y quien entre en la web vean
 // exactamente la misma marca.
-const logo = readFileSync(join(process.cwd(), 'public/images/logo-mark.png'))
+const logo = readFileSync(join(process.cwd(), 'public/icons/icon-192x192.png'))
 const logoSrc = `data:image/png;base64,${logo.toString('base64')}`
 
 export default function OpenGraphImage() {
