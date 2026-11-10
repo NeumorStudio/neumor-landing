@@ -346,10 +346,6 @@ body {
   background-position: center;
 }
 
-/* El punto del logo: ámbar, y algo más oscuro sobre fondo claro (MARCA.md). */
-.logo-n-punto { fill: #e8962a; }
-.dark .logo-n-punto { fill: #f2a93b; }
-
 .dark .icono-feature {
   background-image: var(--ico-oscuro);
 }
