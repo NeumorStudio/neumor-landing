@@ -85,8 +85,11 @@ export function ProductoEnEscena({ funciones }: { funciones: FuncionProducto[] }
 
   const actual = funciones[activa].pantalla
 
+  // El punto de la n (PuntoGuia) baja por la raya de la lista al ritmo de la
+  // función encendida. En móvil el navegador va fijo arriba y el punto se
+  // cruzaría con él, así que ahí se esconde mientras dura el ejemplo.
   return (
-    <div ref={raiz} className="pe">
+    <div ref={raiz} className="pe" data-punto="pausa" data-punto-hasta="1023">
       <div className="pe-visual" aria-hidden="true">
         <div className="pe-marco">
           <div className="escenario-barra">
@@ -113,6 +116,7 @@ export function ProductoEnEscena({ funciones }: { funciones: FuncionProducto[] }
       </div>
 
       <ol className="pe-lista">
+        <li className="pe-rail" data-punto="via" data-punto-tam="12" data-punto-desde="1024" aria-hidden="true" />
         {funciones.map((f, i) => (
           <li key={f.title} className={`pe-funcion${i === activa ? ' activa' : ''}`}>
             <span className="pe-num">{dosCifras(i + 1)}</span>

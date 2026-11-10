@@ -1,13 +1,16 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import Image from 'next/image'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { Proyectos } from "@/components/ui/Proyectos"
 import { ProductoEnEscena, type FuncionProducto } from "@/components/ui/ProductoEnEscena"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
 import { LogoN } from "@/components/ui/LogoN"
+import { NEnTres } from "@/components/ui/NEnTres"
+import { PuntoGuia } from "@/components/ui/PuntoGuia"
+import { lineaLecturaPct } from "@/components/ui/punto-estado"
+import { N_FORMA } from "@/components/ui/n-forma"
 import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
 import { Intro, EVENTO_INTRO, introActiva } from "@/components/ui/Intro"
@@ -52,25 +55,12 @@ const productFeatures: FuncionProducto[] = [
   },
 ]
 
-/**
- * Aquí había dos vídeos de stock rotulados «La web pública» y «El panel de
- * gestión». Se leían como trabajo nuestro sin serlo, y ya no hacen falta:
- * Salonio está en producción y la sección de abajo enseña el producto real.
- */
-
-
-// Motas de luz alrededor de la n de la portada. Cada una a su profundidad:
-// al inclinarse la escena se separan entre sí y del logo, y eso es lo que
-// hace que se lea como un espacio y no como una imagen plana.
-const motas = [
-  { x: 14, y: 22, z: 120, t: 4, d: 0 },
-  { x: 86, y: 18, z: -90, t: 6, d: 1.4 },
-  { x: 92, y: 58, z: 160, t: 3, d: 2.1 },
-  { x: 8, y: 66, z: -40, t: 5, d: 0.7 },
-  { x: 28, y: 90, z: 90, t: 3, d: 3.2 },
-  { x: 70, y: 86, z: -120, t: 7, d: 1.9 },
-  { x: 50, y: 6, z: 60, t: 3, d: 2.7 },
-  { x: 62, y: 34, z: 200, t: 2, d: 0.3 },
+// Lo que hacemos, en tres palabras. El punto salta de una a otra al bajar y
+// cada una se enciende cuando la toca.
+const queHacemos = [
+  { palabra: 'Webs', linea: 'que convierten visitas en clientes' },
+  { palabra: 'Paneles', linea: 'para llevar el negocio sin depender de nadie' },
+  { palabra: 'Automatización', linea: 'para lo que hoy se hace a mano' },
 ]
 
 const nichos = [
@@ -117,14 +107,14 @@ const processSteps = [
 const dosCifras = (n: number) => String(n).padStart(2, '0')
 
 /**
- * La cabecera de cada sección: un número de capítulo con el punto de la n, el
- * título y una entrada. El punto se enciende mientras la sección está en
- * pantalla: es lo que cose la página como un recorrido de principio a fin.
+ * La cabecera de cada sección: un número de capítulo con un hueco para el
+ * punto de la n. El punto se posa en él al llegar a la sección: es lo que
+ * cose la página como un recorrido de principio a fin.
  */
-function Capitulo({ n, nombre, centrado = true }: { n: number; nombre: string; centrado?: boolean }) {
+function Capitulo({ n, nombre, centrado = true, ancla = true }: { n: number; nombre: string; centrado?: boolean; ancla?: boolean }) {
   return (
     <p className={`capitulo${centrado ? ' justify-center' : ''}`}>
-      <span className="capitulo-punto" aria-hidden="true" />
+      <span className={`capitulo-punto${ancla ? ' punto-hueco' : ''}`} data-punto={ancla ? '' : undefined} aria-hidden="true" />
       <span className="capitulo-n">{dosCifras(n)}</span>
       <span aria-hidden="true">—</span>
       {nombre}
@@ -134,7 +124,6 @@ function Capitulo({ n, nombre, centrado = true }: { n: number; nombre: string; c
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const contactRef = useRef<HTMLDivElement>(null)
 
   // ========== LA VÍA DEL RECORRIDO ==========
   // Va del centro del primer paso al centro del último. Depende del alto de
@@ -172,26 +161,22 @@ export default function Home() {
       const conIntro = introActiva()
       const entrada = gsap.timeline({ paused: conIntro, defaults: { ease: 'power3.out' } })
       if (conIntro) {
-        // Viene de la pantalla de carga: va algo más rápida para que el
-        // titular se lea en cuanto se abre la web.
         entrada.timeScale(1.35)
         const empezar = () => { entrada.play() }
         window.addEventListener(EVENTO_INTRO, empezar, { once: true })
-        // Por si la pantalla de carga no llegara a avisar.
         gsap.delayedCall(5, empezar)
       }
       entrada
-        .fromTo('.hero-logo', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 1.1 })
-        .from('.hero-mota', { opacity: 0, stagger: 0.06, duration: 0.8 }, 0.3)
-        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.7')
+        .fromTo('.hero-logo', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 1.1 })
+        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.8')
         .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
-        .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+        .fromTo('.hero-subrayado', { '--subrayado': 0 }, { '--subrayado': 1, duration: 0.8, ease: 'power2.inOut' }, '-=0.25')
+        .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.6')
         .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.5 }, '-=0.35')
 
       // Reveal genérico por sección: el contenido sube desde la profundidad,
-      // tumbado unos grados hacia atrás, y se enfoca al ponerse de pie, como
-      // si pasara detrás de un cristal. El filtro y el giro se quitan al
-      // acabar para no dejar capas de composición vivas.
+      // tumbado unos grados hacia atrás, y se enfoca al ponerse de pie. El
+      // filtro y el giro se quitan al acabar para no dejar capas vivas.
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
         gsap.fromTo(
           el.children,
@@ -214,83 +199,52 @@ export default function Home() {
         )
       })
 
-      // Barra de lectura: una línea ámbar arriba que avanza con el scroll,
-      // con el punto de la n en la punta.
-      gsap.fromTo('.progreso-linea', { scaleX: 0 }, {
-        scaleX: 1, ease: 'none',
-        scrollTrigger: { start: 0, end: 'max', scrub: 0.3 },
-      })
-
-      // La n de la portada se queda atrás al bajar y se aleja en profundidad,
-      // tumbándose hacia el fondo. Las motas, a distintas profundidades, se
-      // separan al girar: es el momento en que se nota que hay espacio.
-      gsap.to('.hero-logo', {
-        yPercent: 14, ease: 'none',
-        scrollTrigger: { trigger: '.hero-logo', start: 'top top+=80', end: 'bottom top', scrub: true },
-      })
-      gsap.to('.hero-profundidad', {
-        rotationX: 24, z: -160, ease: 'none',
-        scrollTrigger: { trigger: '.hero-logo', start: 'top top+=80', end: 'bottom top', scrub: 0.4 },
-      })
-
-      // La luz ambiente acompaña todo el scroll: dos focos, ámbar y frío como
-      // los de la n de cristal, que cruzan la página despacio. Es lo que hace
-      // que las secciones se lean como un mismo espacio.
-      gsap.timeline({ scrollTrigger: { start: 0, end: 'max', scrub: 1.2 } })
-        .fromTo('.ambiente-a', { xPercent: 0, yPercent: 0 }, { xPercent: -95, yPercent: 40, ease: 'sine.inOut' }, 0)
-        .fromTo('.ambiente-b', { xPercent: 0, yPercent: 0 }, { xPercent: 110, yPercent: -30, ease: 'sine.inOut' }, 0)
-
       // El cierre del coste se ilumina palabra a palabra al leerlo.
       gsap.fromTo('.cierre-palabra', { opacity: 0.18 }, {
         opacity: 1, stagger: 0.12, ease: 'none',
         scrollTrigger: { trigger: '.cierre-coste', start: 'top 85%', end: 'top 45%', scrub: 0.4 },
       })
 
-      // El recorrido: el punto ámbar baja por la vía al ritmo del scroll y va
-      // encendiendo cada paso al llegar. Siempre está a la altura del 60 % de
-      // la pantalla, así que cada paso se enciende justo cuando se lee.
+      // El recorrido del proceso: la vía se llena al ritmo del scroll y cada
+      // paso se enciende al llegar. El punto que baja por ella es el de la n
+      // (PuntoGuia), el mismo que viene de la portada.
       const via = document.querySelector<HTMLElement>('.recorrido-via')
       if (via) {
         // Sin esta clase el recorrido se ve completo: si el JavaScript no
         // llega, los pasos no se quedan apagados.
         via.parentElement?.classList.add('vivo')
+        // A la misma altura de lectura por la que pasa el punto.
         gsap.timeline({
-          scrollTrigger: { trigger: via, start: 'top 60%', end: 'bottom 60%', scrub: 0.5, invalidateOnRefresh: true },
+          scrollTrigger: {
+            trigger: via,
+            start: () => `top ${lineaLecturaPct()}%`,
+            end: () => `bottom ${lineaLecturaPct()}%`,
+            scrub: 0.5,
+            invalidateOnRefresh: true,
+          },
         })
           .fromTo('.recorrido-luz', { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
           .fromTo('.recorrido-punto', { y: 0 }, { y: () => via.offsetHeight, ease: 'none' }, 0)
         gsap.utils.toArray<HTMLElement>('.paso').forEach((paso) => {
           ScrollTrigger.create({
             trigger: paso.querySelector('.paso-nodo'),
-            start: 'center 60%',
+            start: () => `center ${lineaLecturaPct()}%`,
             toggleClass: { targets: paso, className: 'activo' },
           })
         })
       }
 
-      // Cada capítulo enciende su punto mientras su sección está en pantalla.
-      gsap.utils.toArray<HTMLElement>('.capitulo').forEach((cap) => {
-        ScrollTrigger.create({
-          trigger: cap.closest('section') ?? cap,
-          start: 'top 70%',
-          end: 'bottom 35%',
-          toggleClass: { targets: cap, className: 'encendido' },
-        })
-      })
-
       // El coste: cada frase está apagada y se enciende al pasar por la
-      // altura de lectura, con su punto en la línea de la izquierda. Va atado
-      // al scroll, así que si se vuelve atrás, se vuelve a apagar.
+      // altura de lectura. El punto de la n se posa en su marca al llegar.
       const lista = document.querySelector<HTMLElement>('.coste-lista')
       if (lista) {
         lista.classList.add('vivo')
         const puntos = gsap.utils.toArray<HTMLElement>('.coste-punto')
         puntos.forEach((punto, i) => {
           const tl = gsap.timeline({
-            scrollTrigger: { trigger: punto, start: 'top 82%', end: 'top 52%', scrub: 0.4 },
+            scrollTrigger: { trigger: punto, start: 'top 80%', end: () => `top ${lineaLecturaPct()}%`, scrub: 0.4 },
           })
             .fromTo(punto.querySelector('.coste-frase'), { opacity: 0.16, x: -6 }, { opacity: 1, x: 0, ease: 'none' }, 0)
-            .fromTo(punto.querySelector('.coste-marca'), { scale: 0.5, opacity: 0.35 }, { scale: 1, opacity: 1, ease: 'none' }, 0)
           // El tramo de línea que sale de la frase anterior llega a esta a la vez que se enciende.
           const tramo = puntos[i - 1]?.querySelector('.coste-tramo > span')
           if (tramo) tl.fromTo(tramo, { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
@@ -298,8 +252,7 @@ export default function Home() {
       }
 
       // Los compromisos se apilan: cada tarjeta se queda pegada arriba y la
-      // siguiente sube por encima. La de debajo se encoge y se oscurece un
-      // poco, para que se lea que queda atrás.
+      // siguiente sube por encima. La de debajo se encoge y se oscurece un poco.
       const cartas = gsap.utils.toArray<HTMLElement>('.pila-carta')
       cartas.forEach((carta, i) => {
         const siguiente = cartas[i + 1]
@@ -333,26 +286,10 @@ export default function Home() {
       )
     }, containerRef)
 
-    // Con puntero fino, la escena de la n se inclina hacia el ratón. La luz
-    // de detrás y las motas van a otras profundidades, así que se mueven a
-    // distinto ritmo que el logo.
-    const hero = document.querySelector<HTMLElement>('.hero-escena')
-    let quitarInclinacion = () => {}
-    if (hero && window.matchMedia('(pointer: fine)').matches) {
-      const rx = gsap.quickTo(hero, 'rotationX', { duration: 0.9, ease: 'power3.out' })
-      const ry = gsap.quickTo(hero, 'rotationY', { duration: 0.9, ease: 'power3.out' })
-      const mover = (e: PointerEvent) => {
-        rx(((e.clientY / window.innerHeight) - 0.5) * -12)
-        ry(((e.clientX / window.innerWidth) - 0.5) * 16)
-      }
-      window.addEventListener('pointermove', mover)
-      quitarInclinacion = () => window.removeEventListener('pointermove', mover)
-    }
-
     return () => {
-      quitarInclinacion()
       ctx.revert()
       document.querySelector('.recorrido')?.classList.remove('vivo')
+      document.querySelector('.coste-lista')?.classList.remove('vivo')
     }
   }, [])
 
@@ -369,21 +306,16 @@ export default function Home() {
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-x-clip">
       <Intro />
-      <div className="ambiente" aria-hidden="true">
-        <span className="ambiente-luz ambiente-a" />
-        <span className="ambiente-luz ambiente-b" />
-      </div>
       <BrilloLiquido />
-      <div className="progreso" aria-hidden="true">
-        <span className="progreso-linea" />
-      </div>
+      <PuntoGuia />
       <Navbar />
 
       <main className="min-h-screen pt-20">
-        {/* ========== HERO: MANIFIESTO + MESA DE TALLER ========== */}
-        <NeumorfSection className="max-w-6xl !pt-6 !pb-10 lg:!pt-16 md:!pb-12 relative flex flex-col lg:min-h-[calc(100svh-5rem)]">
-          <div className="hero-fondo" aria-hidden="true" />
-          <div className="relative z-10 flex-1 grid items-center gap-6 lg:gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
+        {/* ========== HERO: EL TITULAR Y LA N EN 3D ==========
+            La n sale de la pared como una tecla y la bola de dentro es el
+            punto que acompaña toda la página. */}
+        <NeumorfSection className="max-w-6xl !pt-6 !pb-10 lg:!pt-10 md:!pb-12 relative flex flex-col lg:min-h-[calc(100svh-5rem)]">
+          <div className="relative z-10 flex-1 grid items-center gap-4 lg:gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <div className="text-center lg:text-left">
               <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] text-balance mb-6">
                 {marca.descriptor}
@@ -391,10 +323,10 @@ export default function Home() {
 
               {/* El titular es la misión dicha en una línea. Habla de lo que gana
                   quien paga, no de lo que hacemos nosotros. */}
-              <h1 className="font-display text-[1.95rem] sm:text-4xl md:text-5xl xl:text-[3.4rem] font-bold tracking-tight leading-[1.05] mb-6">
+              <h1 className="font-display text-[2.05rem] sm:text-5xl xl:text-[3.4rem] font-semibold leading-[1.04] mb-6">
                 <span className="hero-line block">Montamos el software</span>
                 <span className="hero-line block">que tu negocio</span>
-                <span className="hero-line block text-[var(--accent)]">todavía hace a mano.</span>
+                <span className="hero-line block"><span className="hero-subrayado">todavía hace a mano.</span></span>
               </h1>
 
               <p className="hero-desc text-base md:text-lg text-[var(--ink-soft)] mb-8 max-w-xl mx-auto lg:mx-0">
@@ -424,43 +356,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* La n de la portada, una por tema: cristal en oscuro y relieve en
-                claro. El CSS elige cuál se ve, y la que no toca no se descarga.
-                Los tamaños cuentan con el aumento del CSS (.hero-n). */}
-            <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-72 lg:max-w-none">
-             <div className="hero-profundidad">
-              <div className="hero-escena">
-              <span className="hero-halo" aria-hidden="true" />
-              <Image
-                src="/marca/n-cristal-sin-fondo.webp"
-                alt=""
-                width={1400}
-                height={1400}
-                priority
-                sizes="(min-width: 1024px) 65vw, 26rem"
-                className="hero-n hero-n-oscuro"
-              />
-              <Image
-                src="/marca/n-relieve-claro-sin-fondo.webp"
-                alt=""
-                width={1400}
-                height={1400}
-                sizes="(min-width: 1024px) 65vw, 26rem"
-                className="hero-n hero-n-claro"
-              />
-              {motas.map((m, i) => (
-                <span
-                  key={i}
-                  className="hero-mota"
-                  aria-hidden="true"
-                  style={{
-                    left: `${m.x}%`, top: `${m.y}%`,
-                    '--z': `${m.z}px`, '--t': `${m.t}px`, '--d': `${m.d}s`,
-                  } as React.CSSProperties}
-                />
-              ))}
-              </div>
-             </div>
+            <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-[19rem] sm:max-w-sm lg:max-w-none">
+              <NEnTres className="hero-n3d" />
             </div>
           </div>
 
@@ -473,7 +370,7 @@ export default function Home() {
         <NeumorfSection id="coste" className="max-w-6xl">
           <div className="reveal text-center mb-14 md:mb-20">
             <Capitulo n={1} nombre="El problema" />
-            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4 text-balance">
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4 text-balance">
               {costeManual.titulo}
             </h2>
             <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
@@ -482,14 +379,14 @@ export default function Home() {
           </div>
 
           {/* Cuatro frases grandes, apagadas, que se encienden una a una al
-              bajar. Una línea a la izquierda las une y se va llenando de luz. */}
+              bajar. El punto de la n se posa en la marca de cada una. */}
           <ol className="coste-lista">
             {costeManual.puntos.map((punto, i) => (
               <li key={punto.titulo} className="coste-punto">
                 {i < costeManual.puntos.length - 1 && (
                   <span className="coste-tramo" aria-hidden="true"><span /></span>
                 )}
-                <span className="coste-marca" aria-hidden="true" />
+                <span className="coste-marca punto-hueco" data-punto="" aria-hidden="true" />
                 <div className="coste-frase">
                   <h3 className="coste-titulo">{punto.titulo}</h3>
                   <p className="coste-detalle">{punto.detalle}</p>
@@ -499,26 +396,38 @@ export default function Home() {
           </ol>
 
           {/* Se enciende palabra a palabra con el scroll (ver el efecto de entradas). */}
-          <p className="cierre-coste text-center font-display text-2xl md:text-4xl font-bold tracking-tight mt-20 md:mt-28 max-w-3xl mx-auto text-balance">
+          <p className="cierre-coste text-center font-display text-2xl md:text-4xl font-semibold mt-20 md:mt-28 max-w-3xl mx-auto text-balance">
             {costeManual.cierre.split(' ').map((palabra, i) => (
               <span key={i} className="cierre-palabra">{palabra} </span>
             ))}
           </p>
         </NeumorfSection>
 
-        {/* ========== LO QUE CONSTRUIMOS ========== */}
+        {/* ========== LO QUE CONSTRUIMOS ==========
+            Primero en tres palabras, con el punto saltando de una a otra, y
+            luego el ejemplo entero: una web con su panel, pantalla a pantalla. */}
         <NeumorfSection id="construimos" className="max-w-6xl">
-          <div className="reveal text-center mb-12 md:mb-16">
+          <div className="reveal text-center mb-10 md:mb-14">
             <Capitulo n={2} nombre="La solución" />
-            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
               Lo que construimos
             </h2>
-            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
-              Aplicaciones web con su panel de gestión, para negocios que
-              necesitan presencia profesional y autonomía en el día a día.
-              Producto propio y desarrollo a medida.
-            </p>
           </div>
+
+          <ol className="tres">
+            {queHacemos.map((q) => (
+              <li key={q.palabra} className="tres-item">
+                <span className="tres-hueco punto-hueco" data-punto="" aria-hidden="true" />
+                <span className="tres-palabra font-display">{q.palabra}</span>
+                <span className="tres-linea">{q.linea}</span>
+              </li>
+            ))}
+          </ol>
+
+          <p className="text-center text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto mt-12 md:mt-16 mb-10 md:mb-14">
+            Así se ve todo junto en un restaurante inventado, Olmo: la web, su
+            panel y lo que pasa solo por detrás.
+          </p>
 
           <ProductoEnEscena funciones={productFeatures} />
 
@@ -534,13 +443,32 @@ export default function Home() {
           </div>
         </NeumorfSection>
 
-        {/* ========== CÓMO TRABAJAMOS: LOS VALORES, CON SU PRUEBA ==========
-            Va antes de Proyectos a propósito: aquí se promete y justo debajo
-            está Salonio para confirmarlo. Un valor sin prueba es un eslogan. */}
+        {/* ========== PROYECTOS ==========
+            Justo después del ejemplo, a propósito: Olmo es inventado y aquí
+            están los de verdad. Es el momento en que quien duda quiere pruebas.
+            El selector enseña el catálogo de un vistazo y el panel pinta el
+            elegido; el punto toma el color de cada proyecto. Los datos están en
+            `lib/content/proyectos.ts`: añadir uno es escribir un objeto. */}
+        <NeumorfSection id="proyectos" className="max-w-6xl">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={3} nombre="Casos reales" />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+              Proyectos
+            </h2>
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
+              Olmo es un ejemplo. Estos no: están en producción y con gente
+              usándolos hoy. Uno es nuestro y el otro, de un cliente.
+            </p>
+          </div>
+
+          <Proyectos />
+        </NeumorfSection>
+
+        {/* ========== CÓMO TRABAJAMOS: LOS VALORES, CON SU PRUEBA ========== */}
         <NeumorfSection id="compromisos" className="max-w-6xl seccion-texturada">
           <div className="reveal text-center mb-12 md:mb-16">
-            <Capitulo n={3} nombre="Compromisos" />
-            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
+            <Capitulo n={4} nombre="Compromisos" />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
               Cómo trabajamos
             </h2>
             <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
@@ -572,31 +500,11 @@ export default function Home() {
           </ol>
         </NeumorfSection>
 
-        {/* ========== PROYECTOS ==========
-            Selector, no pila. Iban uno debajo de otro y cada encargo nuevo
-            alargaba la home; ahora las placas enseñan el catálogo de trabajos
-            de un vistazo y el panel pinta el elegido. El contenido está en
-            `lib/content/proyectos.ts`: añadir uno es escribir un objeto. */}
-        <NeumorfSection id="proyectos" className="max-w-6xl">
-          <div className="reveal text-center mb-12 md:mb-16">
-            <Capitulo n={4} nombre="Casos" />
-            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
-              Proyectos
-            </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Dos en producción, de dos clases distintas: uno es nuestro y el
-              otro es de un cliente. Los dos con gente usándolos hoy.
-            </p>
-          </div>
-
-          <Proyectos />
-        </NeumorfSection>
-
         {/* ========== EL PROCESO ========== */}
         <NeumorfSection id="proceso" className="max-w-6xl">
           <div className="reveal text-center mb-12 md:mb-16">
             <Capitulo n={5} nombre="El proceso" />
-            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
               Del primer contacto a la entrega
             </h2>
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
@@ -605,11 +513,10 @@ export default function Home() {
             </p>
           </div>
 
-          {/* El recorrido. Una vía vertical une los tres pasos y el punto
-              ámbar de la n baja por ella al hacer scroll, encendiendo cada
-              paso al pasar. Es el logo contando el proceso. */}
+          {/* El recorrido. Una vía vertical une los tres pasos y el punto de la
+              n baja por ella al hacer scroll, encendiendo cada paso al pasar. */}
           <div className="recorrido max-w-3xl mx-auto">
-            <div className="recorrido-via" aria-hidden="true">
+            <div className="recorrido-via" data-punto="via" data-punto-tam="14" aria-hidden="true">
               <span className="recorrido-luz" />
               <span className="recorrido-punto" />
             </div>
@@ -623,7 +530,7 @@ export default function Home() {
                   <p className="font-mono text-[0.68rem] tracking-[0.2em] uppercase text-[var(--ink-soft)] mb-2">
                     Paso {step.day} de {processSteps.length}
                   </p>
-                  <h3 className="font-display text-xl md:text-2xl font-bold tracking-tight mb-2">
+                  <h3 className="font-display text-xl md:text-2xl font-semibold mb-2">
                     {step.title}
                   </h3>
                   <p className="text-sm md:text-base text-[var(--ink-soft)]">{step.copy}</p>
@@ -632,7 +539,6 @@ export default function Home() {
             ))}
             </ol>
           </div>
-
         </NeumorfSection>
 
         {/* ========== EL LABORATORIO ==========
@@ -640,11 +546,8 @@ export default function Home() {
             llegar, así que a partir de este punto el contenido técnico no le
             quita el sitio a nada. */}
         <NeumorfSection id="laboratorio" className="max-w-6xl">
-          {/* Era la sección más larga siendo la menos importante: 152 palabras,
-              tres tarjetas y un bloque entero sobre metodología interna. Queda
-              en una línea y las etiquetas. Quien quiera detalle, va a GitHub. */}
           <div className="reveal text-center max-w-2xl mx-auto">
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
+            <h2 className="font-display text-2xl md:text-3xl font-semibold mb-3">
               El laboratorio
             </h2>
             <p className="text-[var(--ink-soft)] mb-6">
@@ -660,14 +563,23 @@ export default function Home() {
           </div>
         </NeumorfSection>
 
-        {/* ========== CONTACTO ========== */}
-        <div ref={contactRef} id="contacto">
+        {/* ========== CONTACTO ==========
+            El recorrido acaba aquí: el punto vuelve a la n y el logo queda
+            completo junto al formulario. */}
+        <div id="contacto">
           <NeumorfSection className="pb-24">
             <div className="reveal grid gap-12 md:grid-cols-2 items-start">
               <div className="space-y-6">
+                <div className="casa" aria-hidden="true">
+                  <svg viewBox={N_FORMA.vista} className="casa-n">
+                    <path d={N_FORMA.n} />
+                  </svg>
+                  <span className="casa-hueco punto-hueco" data-punto="" />
+                </div>
                 <div>
-                  <Capitulo n={6} nombre="Hablemos" centrado={false} />
-                  <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
+                  {/* Sin hueco para el punto: aquí el final es la n de arriba. */}
+                  <Capitulo n={6} nombre="Hablemos" centrado={false} ancla={false} />
+                  <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
                     Hablemos de tu proyecto
                   </h2>
                   <p className="text-[var(--ink-soft)] leading-relaxed">
@@ -687,8 +599,8 @@ export default function Home() {
                     'Si no te encajamos, te lo decimos',
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-[var(--ink-soft)]">
-                      <span className="w-5 h-5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="contacto-marca" aria-hidden="true">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       </span>
@@ -709,7 +621,7 @@ export default function Home() {
         <footer className="border-t border-[var(--edge-border)]">
           <NeumorfSection className="!py-8 md:!py-10 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
             {/* La misma firma que la barra: la n y el nombre. */}
-            <div className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight text-[var(--foreground)]">
+            <div className="flex items-center gap-2.5 text-xl font-semibold tracking-[-0.035em] text-[var(--foreground)]">
               <LogoN className="w-7 h-7" />
               NeumorStudio
             </div>

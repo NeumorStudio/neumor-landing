@@ -147,8 +147,15 @@ export function Proyectos() {
       >
         <header className="caso-cabecera" style={{ '--i': 0 } as React.CSSProperties}>
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <span className="ng-badge text-emerald-600 dark:text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {/* El punto de la n se posa aquí y toma el color del proyecto. */}
+            <span className="ng-badge">
+              <span
+                className="caso-punto punto-hueco"
+                data-punto=""
+                data-punto-color={p.color}
+                style={{ '--punto-color': p.color } as React.CSSProperties}
+                aria-hidden="true"
+              />
               En producción
             </span>
             <span className="ng-badge text-[var(--ink-soft)]">{p.naturaleza}</span>
@@ -156,7 +163,7 @@ export function Proyectos() {
               <span key={i} className="ng-badge text-[var(--ink-soft)]">{i}</span>
             ))}
           </div>
-          <h3 className="font-display text-2xl md:text-4xl font-bold tracking-tight mb-3 text-balance">
+          <h3 className="font-display text-2xl md:text-4xl font-semibold mb-3 text-balance">
             {p.titulo}
           </h3>
           <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl">{p.entradilla}</p>

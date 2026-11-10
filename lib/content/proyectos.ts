@@ -23,6 +23,8 @@ export type Proyecto = {
   nombre: string
   /** Lo que va en la placa del selector, debajo del nombre. */
   naturaleza: Naturaleza
+  /** El color de su marca. El punto de la n lo toma al posarse en el caso. */
+  color: string
   titulo: string
   entradilla: string
   insignias: string[]
@@ -38,6 +40,7 @@ export const proyectos: Proyecto[] = [
     id: 'salonio',
     nombre: 'Salonio',
     naturaleza: 'Producto propio',
+    color: '#D9A43A',
     titulo: 'Salonio — reservas para peluquerías',
     entradilla:
       'Los clientes reservan solos a cualquier hora. El dueño deja de coger el teléfono a mitad de un corte.',
@@ -76,6 +79,7 @@ export const proyectos: Proyecto[] = [
     id: 'regalado',
     nombre: 'González-Regalado',
     naturaleza: 'Encargo de cliente',
+    color: '#B59A62',
     titulo: 'González-Regalado Gourmet — catálogo y escaparate',
     entradilla:
       'Tenían una web de una sola pantalla que no enseñaba lo que venden. Ahora tienen su catálogo entero en siete idiomas.',

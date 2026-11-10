@@ -5,8 +5,8 @@ import gsap from 'gsap'
 import { N_FORMA } from './n-forma'
 
 /**
- * La pantalla de carga: la n se dibuja, el punto se enciende y la web se abre
- * desde el punto, como si la luz de la n la destapara.
+ * La pantalla de carga: la n se dibuja, cae el punto y la web se abre desde
+ * él, como si el punto la destapara.
  *
  * Sale una vez por visita y nunca con movimiento reducido. Lo decide un script
  * en el <body> antes del primer pintado (ver `app/layout.tsx`), que pone
@@ -58,9 +58,7 @@ export function Intro() {
       tl = gsap.timeline({
         onComplete: () => html.classList.remove('con-intro'),
       })
-        .to(['.intro-arco', '.intro-nombre'], { opacity: 0, duration: 0.35, ease: 'power2.in' }, 0)
-        .to('.intro-luz', { scale: 2.4, duration: 0.5, ease: 'power2.out' }, 0)
-        .to(el, { '--borde': 0.55, duration: 0.25 }, 0.15)
+        .to(['.intro-trazo', '.intro-nombre'], { opacity: 0, duration: 0.35, ease: 'power2.in' }, 0)
         .fromTo(el, { '--r': '0px' }, { '--r': `${radio}px`, duration: 1.05, ease: 'power3.inOut' }, 0.15)
         .call(() => { window.dispatchEvent(new Event(EVENTO_INTRO)) }, [], 0.15)
     }
@@ -82,18 +80,21 @@ export function Intro() {
     <div ref={capa} className="intro-capa" aria-hidden="true">
       <div className="intro-marca">
         <div className="intro-simbolo">
-          <span className="intro-luz" />
           <svg viewBox={N_FORMA.vista} className="intro-n">
-            <path
-              className="intro-arco"
-              d={N_FORMA.arco}
-              pathLength={1}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={N_FORMA.trazo}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            {/* El trazo del arco hace de máscara: va descubriendo la n rellena
+                de una pata a la otra, y lo que queda es el logo exacto. */}
+            <mask id="intro-mascara" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+              <path
+                className="intro-arco"
+                d={N_FORMA.arco}
+                pathLength={1}
+                fill="none"
+                stroke="#fff"
+                strokeWidth={N_FORMA.trazo + 4}
+                strokeLinecap="square"
+              />
+            </mask>
+            <path className="intro-trazo" d={N_FORMA.n} fill="currentColor" mask="url(#intro-mascara)" />
             <circle className="intro-punto" cx={N_FORMA.punto.cx} cy={N_FORMA.punto.cy} r={N_FORMA.punto.r} />
           </svg>
         </div>

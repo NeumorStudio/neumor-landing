@@ -22,26 +22,32 @@
   --engrave: rgba(26, 26, 32, 0.1);
   --engrave-light: rgba(255, 255, 255, 0.7);
 
-  /* Tarjetas con volumen (.ng-card): luz arriba, sombra abajo, brillo ámbar
-     en una esquina, como el logo. En claro son sutiles: el blanco ya brilla. */
+  /* Tarjetas con volumen (.ng-card): luz arriba y sombra abajo. Sin brillo de
+     color: la luz es blanca, como la de la n en relieve. */
   --card-top: #fcfbf9;
   --card-bottom: #edebe6;
-  --card-shine: rgba(242, 169, 59, 0.09);
+  --card-shine: rgba(255, 255, 255, 0);
   --card-rim: rgba(255, 255, 255, 0.95);
   --card-shade: rgba(26, 26, 32, 0.07);
   --card-drop: rgba(26, 26, 32, 0.14);
 
-  /* Acento — el ámbar de la luz del logo. Sobre fondo claro #F2A93B no se lee
-     como texto: --accent es un ámbar oscuro para letras y líneas, y --accent-fill
-     es el de verdad, para rellenar botones con --accent-ink encima. */
-  --accent: #96590a;
-  --accent-fill: #f2a93b;
-  --accent-ink: #1a1204;
-  --accent-edge: #b8791f;
-  --accent-glow: rgba(242, 169, 59, 0.3);
+  /* Sin color de acento. La marca es tinta sobre porcelana y lo único que
+     destaca es el punto de la n, que también va en tinta. --accent es la
+     tinta para letras y líneas; --accent-fill, el relleno de la tecla
+     principal, con --accent-ink encima. */
+  --accent: #17181f;
+  --accent-fill: #17181f;
+  --accent-ink: #fbfaf8;
+  --accent-edge: #000000;
+  --accent-glow: rgba(23, 24, 31, 0.16);
+  --amber: var(--ink-soft);
 
-  /* Ámbar del laboratorio: distinto del acento para que se diferencie */
-  --amber: #d97706;
+  /* Olmo, el restaurante inventado del ejemplo, tiene su propio color: el
+     verde oliva de su hoja. Así nadie lo confunde con nuestra marca. Sus
+     pantallas son siempre oscuras, así que vale igual en los dos temas. */
+  --olmo: #a9c27a;
+  --olmo-rgb: 169, 194, 122;
+  --olmo-ink: #172009;
 
   /* ===== Liquid Glass =====
      El cristal se reserva a lo que flota: la barra y el hero. Las superficies
@@ -80,18 +86,16 @@
 
   --card-top: #24262f;
   --card-bottom: #191a21;
-  --card-shine: rgba(242, 169, 59, 0.1);
+  --card-shine: rgba(255, 255, 255, 0.025);
   --card-rim: rgba(255, 255, 255, 0.10);
   --card-shade: rgba(0, 0, 0, 0.45);
   --card-drop: rgba(0, 0, 0, 0.55);
 
-  --accent: #f2a93b;
-  --accent-fill: #f2a93b;
-  --accent-ink: #1a1204;
-  --accent-edge: #a86a12;
-  --accent-glow: rgba(242, 169, 59, 0.28);
-
-  --amber: #fbbf24;
+  --accent: #e8e6e1;
+  --accent-fill: #e8e6e1;
+  --accent-ink: #17181f;
+  --accent-edge: #a9a7a2;
+  --accent-glow: rgba(232, 230, 225, 0.14);
 
   /* En oscuro el bisel se apaga y la saturación baja: los mismos valores que
      en claro dan un cristal turbio y sucio sobre fondo oscuro. No es el claro
@@ -221,135 +225,8 @@ body {
   .lq-vivo::before { display: none; }
 }
 
-/* ===== Fondo del hero =====
-   Cuatro imágenes, no una recortada: claro y oscuro, apaisada y vertical. Se
-   eligen enteramente por CSS, sin que JavaScript decida nada — así no hay
-   parpadeo ni se descarga la que no toca.
-
-   El error anterior fue usar un vídeo con un objeto de bordes visibles: al
-   recortarlo a pantalla ancha se veía el canto y parecía partido por la mitad.
-   Estas imágenes son campos de luz sin bordes, así que cualquier recorte vale. */
-/* A sangre de verdad: la sección tiene ancho máximo, así que si el fondo se
-   queda dentro de ella se ve el rectángulo recortado con bandas a los lados.
-   Se saca a todo el ancho de la ventana. El contenedor raíz de la página lleva
-   overflow-x oculto, así que los 100vw no provocan scroll lateral. */
-.hero-fondo {
-  position: absolute;
-  /* Sube por detrás de la barra fija. Si empieza donde empieza la sección,
-     queda una franja del color de la web sin imagen justo bajo el menú y ahí
-     se ve el empalme: es lo que delataba que había una imagen pegada. */
-  top: -7rem;
-  bottom: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* La imagen va encima y los degradados debajo, en la misma declaración. Si la
-   imagen aún no ha cargado —o falta— el cristal sigue teniendo color que
-   difuminar en vez de quedarse en un gris sucio. */
-.hero-fondo::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    url('/images/fondo-claro.webp'),
-    radial-gradient(42% 50% at 20% 15%, var(--luz-a), transparent 68%),
-    radial-gradient(46% 44% at 84% 28%, var(--luz-b), transparent 66%),
-    radial-gradient(52% 56% at 55% 95%, var(--luz-c), transparent 70%);
-  background-size: cover, auto, auto, auto;
-  background-position: center, center, center, center;
-  background-repeat: no-repeat;
-  /* Doble desvanecido: elipse para los lados y degradado vertical para arriba
-     y abajo. La imagen nunca llega a tener un borde visible por ningún lado,
-     así que no hay canto que delate que es una imagen. */
-  -webkit-mask-image:
-    radial-gradient(150% 120% at 50% 40%, #000 35%, transparent 92%),
-    linear-gradient(to bottom, transparent 0%, #000 18%, #000 72%, transparent 100%);
-  mask-image:
-    radial-gradient(150% 120% at 50% 40%, #000 35%, transparent 92%),
-    linear-gradient(to bottom, transparent 0%, #000 18%, #000 72%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  /* La imagen sale bastante saturada; a media opacidad el color sigue dando
-     al cristal algo que difuminar sin comerse el titular. */
-  opacity: 0.72;
-}
-
-.dark .hero-fondo::before { opacity: 0.85; }
-
-:root {
-  --luz-a: rgba(242, 169, 59, 0.2);
-  --luz-b: rgba(255, 214, 150, 0.24);
-  --luz-c: rgba(255, 236, 205, 0.26);
-}
-
-.dark {
-  --luz-a: rgba(242, 169, 59, 0.14);
-  --luz-b: rgba(190, 110, 30, 0.12);
-  --luz-c: rgba(120, 70, 30, 0.12);
-}
-
-.dark .hero-fondo::before {
-  background-image:
-    url('/images/fondo-oscuro.webp'),
-    radial-gradient(42% 50% at 20% 15%, var(--luz-a), transparent 68%),
-    radial-gradient(46% 44% at 84% 28%, var(--luz-b), transparent 66%),
-    radial-gradient(52% 56% at 55% 95%, var(--luz-c), transparent 70%);
-}
-
-@media (max-width: 768px) {
-  .hero-fondo::before { background-image:
-    url('/images/fondo-claro-movil.webp'),
-    radial-gradient(60% 34% at 30% 12%, var(--luz-a), transparent 68%),
-    radial-gradient(64% 30% at 80% 40%, var(--luz-b), transparent 66%),
-    radial-gradient(70% 38% at 50% 92%, var(--luz-c), transparent 70%);
-  }
-  .dark .hero-fondo::before { background-image:
-    url('/images/fondo-oscuro-movil.webp'),
-    radial-gradient(60% 34% at 30% 12%, var(--luz-a), transparent 68%),
-    radial-gradient(64% 30% at 80% 40%, var(--luz-b), transparent 66%),
-    radial-gradient(70% 38% at 50% 92%, var(--luz-c), transparent 70%);
-  }
-}
-
-/* Velo: garantiza el contraste del titular pase lo que pase en la imagen.
-   Se difumina hacia el centro para que el color siga viéndose por los lados,
-   que es lo que el cristal necesita tener detrás. */
-/* Velo: arranca opaco del color de la web para que la zona de la barra empalme
-   sin costura, se abre en el centro para que el color respire y vuelve a cerrar
-   abajo, entregando la página al fondo liso de la siguiente sección. */
-.hero-fondo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    var(--background) 0%,
-    color-mix(in srgb, var(--background) 60%, transparent) 14%,
-    color-mix(in srgb, var(--background) 25%, transparent) 45%,
-    color-mix(in srgb, var(--background) 70%, transparent) 82%,
-    var(--background) 100%
-  );
-}
-
-/* La n de la portada. Las dos imágenes llevan transparencia, así que se funden
-   con el campo de luz de detrás. Se aumentan porque la n ocupa dos quintos de
-   la imagen: el resto es el margen donde se apaga la luz del cristal. */
-.hero-n {
-  display: block;
-  width: 100%;
-  height: auto;
-  transform: scale(1.45);
-}
-
-/* El punto del logo: ámbar, y algo más oscuro sobre fondo claro (MARCA.md). */
-.logo-n-punto { fill: #e8962a; }
-.dark .logo-n-punto { fill: #f2a93b; }
-
+/* La n de la portada en imagen: es lo que se ve mientras carga el 3D, o en su
+   lugar (ver components/ui/NEnTres.tsx). Una por tema; el CSS elige cuál. */
 .hero-n-oscuro { display: none; }
 .dark .hero-n-claro { display: none; }
 .dark .hero-n-oscuro { display: block; }
@@ -361,11 +238,9 @@ body {
   isolation: isolate;
 }
 
-/* Antes esto era una textura de píldoras: un material distinto al de los fondos,
-   con patrón reconocible y bordes rectos. Se leía como una imagen pegada encima
-   del diseño. Ahora usa el mismo campo de luz que el hero, muy tenue y sin un
-   solo borde visible, así que se percibe como iluminación de la página y no
-   como una imagen. */
+/* Un fondo de sección algo más hundido que la página y sin bordes: se
+   desvanece arriba y abajo, así que se lee como una bandeja y no como una
+   franja pegada. */
 .seccion-texturada::before {
   content: '';
   position: absolute;
@@ -375,26 +250,9 @@ body {
   width: 100vw;
   transform: translateX(-50%);
   z-index: -1;
-  background-image: url('/images/fondo-claro.webp');
-  background-size: cover;
-  background-position: center;
-  opacity: 0.3;
-  -webkit-mask-image: radial-gradient(120% 90% at 50% 50%, #000 20%, transparent 80%);
-  mask-image: radial-gradient(120% 90% at 50% 50%, #000 20%, transparent 80%);
-}
-
-.dark .seccion-texturada::before {
-  background-image: url('/images/fondo-oscuro.webp');
-  opacity: 0.42;
-}
-
-@media (max-width: 768px) {
-  .seccion-texturada::before { background-image: url('/images/fondo-claro-movil.webp'); }
-  .dark .seccion-texturada::before { background-image: url('/images/fondo-oscuro-movil.webp'); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-video { opacity: 0.35; }
+  background: var(--bg-deep);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
 }
 
 /* La barra de navegación es fija: sin este margen, al saltar desde el menú el
@@ -419,27 +277,9 @@ div[id] {
 }
 
 /* ========== MOVIMIENTO DE MARCA ==========
-   Todo sale de la n: el punto ámbar es la luz que avanza. Lo mueve GSAP desde
-   app/page.tsx, y sin JavaScript o con movimiento reducido se ve el estado
-   final, quieto. */
-
-/* Barra de lectura: una línea ámbar arriba que crece con el scroll. La punta
-   brilla más, como el punto. */
-.progreso {
-  position: fixed;
-  inset: 0 0 auto 0;
-  height: 2px;
-  z-index: 60;
-  pointer-events: none;
-}
-.progreso-linea {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(242, 169, 59, 0) 0%, #f2a93b 75%, #ffd08a 100%);
-  box-shadow: 0 0 10px rgba(242, 169, 59, 0.5);
-  transform-origin: 0 50%;
-  transform: scaleX(0);
-}
+   Todo sale de la n: su punto es el que recorre la página (PuntoGuia). Lo
+   demás lo mueve GSAP desde app/page.tsx, y sin JavaScript o con movimiento
+   reducido se ve el estado final, quieto. */
 
 /* El recorrido: tres pasos unidos por una vía vertical. */
 .recorrido {
@@ -480,8 +320,7 @@ div[id] {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(242, 169, 59, 0.1), #f2a93b);
-  box-shadow: 0 0 12px rgba(242, 169, 59, 0.45);
+  background: var(--foreground);
   transform-origin: 50% 0;
 }
 .recorrido-punto {
@@ -492,10 +331,11 @@ div[id] {
   height: 14px;
   margin: -7px 0 0 -7px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ffd08a, #f2a93b 55%, #e8922a);
-  box-shadow: 0 0 0 4px rgba(242, 169, 59, 0.16), 0 0 18px 4px rgba(242, 169, 59, 0.5);
+  background: var(--foreground);
 }
 .recorrido:not(.vivo) .recorrido-punto { display: none; }
+/* Con el punto de la n recorriendo la página, es él quien baja por la vía. */
+.punto-vivo .recorrido-punto { display: none; }
 
 /* Con JavaScript, cada paso espera apagado a que llegue la luz. */
 .recorrido.vivo .recorrido-luz { transform: scaleY(0); }
@@ -509,13 +349,10 @@ div[id] {
   transform: none;
 }
 .paso.activo .paso-nodo {
-  color: var(--accent-ink);
-  background: linear-gradient(180deg, #ffc970, #f2a93b);
-  border-color: rgba(242, 169, 59, 0.75);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    0 0 0 4px rgba(242, 169, 59, 0.14),
-    0 0 26px rgba(242, 169, 59, 0.45);
+  color: var(--background);
+  background: var(--foreground);
+  border-color: var(--foreground);
+  box-shadow: 0 1px 2px var(--ambient), 0 10px 20px -8px var(--card-drop);
 }
 
 @media (min-width: 768px) {
@@ -526,12 +363,10 @@ div[id] {
 }
 
 /* ===================== INMERSIVO =====================
-   La web como un solo espacio con profundidad. Cuatro piezas:
+   La web como un solo espacio con profundidad:
    - La pantalla de carga: la n se dibuja y la web se abre desde el punto.
-   - La luz ambiente: dos focos fijos detrás de todo que cruzan la página con
-     el scroll, para que las secciones se lean como un mismo sitio.
-   - La portada en capas: halo detrás, la n en medio y motas de luz a varias
-     profundidades. Al inclinarse o al alejarse con el scroll, se separan.
+   - La portada: la n en 3D (components/ui/NEnTres.tsx), con su punto como
+     una bola que se suelta y luego recorre la página.
    - Los casos: barra con número, selector de pastilla y escena 3D.
    Todo lo que se mueve se apaga con prefers-reduced-motion. */
 
@@ -550,15 +385,10 @@ html.con-intro .intro-capa {
   align-items: center;
   justify-content: center;
   color: var(--foreground);
-  /* El color de la web, y encima un aro ámbar que va con el borde del agujero
-     al abrirse: es la luz del punto destapando la página. */
+  /* El color de la web, con un agujero que se abre desde el punto. */
   background-color: var(--background);
-  background-image: radial-gradient(circle at var(--cx) var(--cy),
-    transparent var(--r),
-    rgba(242, 169, 59, var(--borde)) calc(var(--r) + 1px),
-    transparent calc(var(--r) + 5rem));
-  -webkit-mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent var(--r), #000 calc(var(--r) + 1px));
-  mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent var(--r), #000 calc(var(--r) + 1px));
+  -webkit-mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--r) - 1px), #000 var(--r));
+  mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--r) - 1px), #000 var(--r));
   /* Red de seguridad: si el JavaScript no llega a abrirla, se retira sola. */
   animation: intro-retirada 0.5s ease 4.5s forwards;
 }
@@ -582,9 +412,10 @@ html.con-intro .intro-capa {
   height: 100%;
   overflow: visible;
 }
-/* El arco se traza de la pata izquierda a la derecha. La separación del
-   discontinuo es mayor que el trazo para que el remate redondo no asome antes
-   de tiempo. */
+/* La n se descubre con un trazo que va de la pata izquierda a la derecha. El
+   trazo es la máscara de la n rellena (ver Intro.tsx), así que lo que queda
+   es el logo exacto, esquinas incluidas. La separación del discontinuo es
+   mayor que el trazo para que el remate no asome antes de tiempo. */
 .intro-arco {
   stroke-dasharray: 1 1.2;
   stroke-dashoffset: 1.1;
@@ -592,38 +423,21 @@ html.con-intro .intro-capa {
 }
 @keyframes intro-traza { to { stroke-dashoffset: 0; } }
 
+/* El punto cae en su sitio, en tinta como la n. */
 .intro-punto {
-  fill: #f2a93b;
+  fill: currentColor;
   transform-box: fill-box;
   transform-origin: center;
   scale: 0;
   animation: intro-punto 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.78s forwards;
 }
-html:not(.dark) .intro-punto { fill: #e8962a; }
 @keyframes intro-punto { to { scale: 1; } }
 
-/* El brillo del punto: va detrás del SVG, centrado donde cae el punto
-   (cy 62 en una caja de 21 a 79, el 70,7 %). */
-.intro-luz {
-  position: absolute;
-  left: 50%;
-  top: 70.7%;
-  width: 90%;
-  aspect-ratio: 1;
-  margin: -45% 0 0 -45%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.5), rgba(242, 169, 59, 0));
-  opacity: 0;
-  scale: 0.4;
-  animation: intro-luz 0.9s ease-out 0.85s forwards;
-}
-@keyframes intro-luz { to { opacity: 1; scale: 1; } }
-
 .intro-nombre {
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 700;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.035em;
 }
 .intro-nombre > span {
   display: block;
@@ -633,95 +447,8 @@ html:not(.dark) .intro-punto { fill: #e8962a; }
 }
 @keyframes intro-nombre { to { opacity: 1; translate: 0 0; } }
 
-/* ---------- Luz ambiente ----------
-   Fija detrás de todo (z-index negativo: queda por encima del fondo de la
-   página y por debajo del contenido). Solo se ve en los huecos entre tarjetas,
-   que es justo donde una página se nota hecha de piezas sueltas. */
-.ambiente {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-.ambiente-luz {
-  position: absolute;
-  width: 75vmax;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  will-change: transform;
-}
-.ambiente-a {
-  left: 50%;
-  top: 5%;
-  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.09), rgba(242, 169, 59, 0));
-}
-.ambiente-b {
-  left: -30%;
-  top: 40%;
-  background: radial-gradient(closest-side, rgba(120, 150, 235, 0.06), rgba(120, 150, 235, 0));
-}
-html:not(.dark) .ambiente-a {
-  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.12), rgba(242, 169, 59, 0));
-}
-html:not(.dark) .ambiente-b {
-  background: radial-gradient(closest-side, rgba(255, 210, 140, 0.16), rgba(255, 210, 140, 0));
-}
-
-/* ---------- La portada en capas ----------
-   Tres envoltorios para que cada movimiento tenga el suyo y no se pisen:
-   .hero-logo (perspectiva, parallax y entrada) > .hero-profundidad (se aleja
-   con el scroll) > .hero-escena (se inclina hacia el ratón). */
-.hero-logo {
-  position: relative;
-  perspective: 1000px;
-}
-.hero-profundidad,
-.hero-escena {
-  position: relative;
-  transform-style: preserve-3d;
-}
-.hero-escena { will-change: transform; }
-
-/* La luz de detrás de la n, muy al fondo: al inclinarse, se queda atrás. */
-.hero-halo {
-  position: absolute;
-  inset: 4%;
-  border-radius: 50%;
-  background:
-    radial-gradient(closest-side at 40% 40%, rgba(242, 169, 59, 0.26), rgba(242, 169, 59, 0)),
-    radial-gradient(closest-side at 64% 64%, rgba(120, 150, 235, 0.18), rgba(120, 150, 235, 0));
-  transform: translateZ(-240px) scale(1.3);
-  pointer-events: none;
-}
-html:not(.dark) .hero-halo {
-  background:
-    radial-gradient(closest-side at 40% 40%, rgba(242, 169, 59, 0.22), rgba(242, 169, 59, 0)),
-    radial-gradient(closest-side at 64% 64%, rgba(255, 214, 160, 0.3), rgba(255, 214, 160, 0));
-}
-
-.hero-mota {
-  position: absolute;
-  width: var(--t);
-  height: var(--t);
-  margin: calc(var(--t) / -2) 0 0 calc(var(--t) / -2);
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffe3b3 0%, #f2a93b 55%, rgba(242, 169, 59, 0) 72%);
-  box-shadow: 0 0 calc(var(--t) * 2.5) rgba(242, 169, 59, 0.5);
-  opacity: 0.75;
-  transform: translateZ(var(--z));
-  animation: mota-flota 7s ease-in-out var(--d) infinite alternate;
-  pointer-events: none;
-}
-html:not(.dark) .hero-mota {
-  background: radial-gradient(circle, #f2a93b 0%, #c97a12 55%, rgba(201, 122, 18, 0) 72%);
-  box-shadow: 0 0 8px rgba(201, 122, 18, 0.3);
-  opacity: 0.55;
-}
-@keyframes mota-flota {
-  from { translate: 0 0; }
-  to { translate: 6px -16px; }
-}
+/* ---------- La portada ---------- */
+.hero-logo { position: relative; }
 
 /* ---------- Los casos ---------- */
 .casos-barra {
@@ -741,8 +468,8 @@ html:not(.dark) .hero-mota {
 }
 .casos-actual {
   display: inline-block;
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 800;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: clamp(2.6rem, 6vw, 4rem);
   letter-spacing: -0.04em;
   color: var(--accent);
@@ -806,8 +533,8 @@ html:not(.dark) .hero-mota {
   transition: color 0.3s ease;
 }
 .casos-pestana-nombre {
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 700;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: 0.95rem;
   line-height: 1.25;
   transition: color 0.3s ease;
@@ -930,15 +657,7 @@ html:not(.dark) .hero-mota {
   aspect-ratio: 50 / 31;
   transform-style: preserve-3d;
 }
-/* La luz de la marca detrás del conjunto y su sombra en el suelo. */
-.escenario-raton::before {
-  content: '';
-  position: absolute;
-  inset: -8% 0 0 20%;
-  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.16), rgba(242, 169, 59, 0));
-  transform: translateZ(-140px);
-  pointer-events: none;
-}
+/* La sombra del conjunto en el suelo. */
 .escenario-raton::after {
   content: '';
   position: absolute;
@@ -1020,7 +739,6 @@ html:not(.dark) .escenario-navegador {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-mota { animation: none; }
   .casos-actual,
   .caso[data-sentido],
   .caso[data-sentido] > *,
@@ -1029,10 +747,10 @@ html:not(.dark) .escenario-navegador {
 }
 
 /* ===================== LA PÁGINA COMO UN RECORRIDO =====================
-   Debajo de la portada, todo sigue el mismo gesto que el recorrido de los
-   pasos: las cosas esperan apagadas y se encienden cuando el scroll las lleva
-   a la altura de lectura. Una línea fina las une y se llena de luz ámbar.
-   Cada sección abre con su número de capítulo y el punto de la n. */
+   Debajo de la portada, todo sigue el mismo gesto: las cosas esperan apagadas
+   y se encienden cuando el scroll las lleva a la altura de lectura, que es
+   por donde pasa el punto de la n. Cada sección abre con su número de
+   capítulo y un hueco donde el punto se posa al llegar. */
 
 /* ---------- Capítulo ---------- */
 .capitulo {
@@ -1051,17 +769,11 @@ html:not(.dark) .escenario-navegador {
   font-variant-numeric: tabular-nums;
 }
 .capitulo-punto {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   flex: none;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--ink-soft) 45%, transparent);
-  transition: background 0.5s ease, box-shadow 0.5s ease, transform 0.5s ease;
-}
-.capitulo.encendido .capitulo-punto {
-  background: #f2a93b;
-  box-shadow: 0 0 0 4px rgba(242, 169, 59, 0.16), 0 0 14px rgba(242, 169, 59, 0.6);
-  transform: scale(1.15);
+  background: var(--foreground);
 }
 
 /* ---------- El coste ---------- */
@@ -1083,11 +795,11 @@ html:not(.dark) .escenario-navegador {
 }
 .coste-punto { position: relative; }
 .coste-titulo {
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 700;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: var(--fs);
   line-height: 1.15;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 .coste-detalle {
@@ -1100,12 +812,9 @@ html:not(.dark) .escenario-navegador {
   position: absolute;
   left: calc(var(--l) + 1px - var(--p));
   top: calc(var(--fs) * 0.575);
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ffd08a, #f2a93b 55%, #e8922a);
-  box-shadow: 0 0 0 4px rgba(242, 169, 59, 0.14), 0 0 16px rgba(242, 169, 59, 0.5);
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
 }
 /* El tramo de línea de cada frase a la siguiente. */
 .coste-tramo {
@@ -1122,8 +831,7 @@ html:not(.dark) .escenario-navegador {
   inset: 0;
   border-radius: inherit;
   transform-origin: 50% 0;
-  background: linear-gradient(180deg, #f2a93b, rgba(242, 169, 59, 0.35));
-  box-shadow: 0 0 10px rgba(242, 169, 59, 0.35);
+  background: var(--foreground);
 }
 
 /* ---------- Lo que construimos: producto en escena ---------- */
@@ -1177,9 +885,9 @@ html:not(.dark) .pe-marco {
   translate: 0 -50%;
   padding: 0.1rem 0.5rem;
   border-radius: 99px;
-  background: rgba(242, 169, 59, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(242, 169, 59, 0.35);
-  color: #f2a93b;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.75);
   font-size: clamp(8px, 0.75vw, 11px);
   font-style: normal;
   font-weight: 600;
@@ -1208,9 +916,19 @@ html:not(.dark) .pe-marco {
   background: color-mix(in srgb, var(--ink-soft) 40%, transparent);
   transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), background 0.45s ease;
 }
-.pe-indice span.activo { width: 22px; background: #f2a93b; }
+.pe-indice span.activo { width: 22px; background: var(--foreground); }
 
-.pe-lista { list-style: none; margin: 0; padding: 0; }
+.pe-lista { position: relative; list-style: none; margin: 0; padding: 0; }
+/* La raya por la que baja el punto de la n: la del borde de las funciones,
+   de la primera a la última. */
+.pe-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+}
 .pe-funcion {
   min-height: 30svh;
   padding: 1.25rem 0 1.25rem 1.4rem;
@@ -1227,7 +945,7 @@ html:not(.dark) .pe-marco {
   }
 }
 .pe.vivo .pe-funcion { opacity: 0.28; }
-.pe.vivo .pe-funcion.activa { opacity: 1; border-left-color: #f2a93b; }
+.pe.vivo .pe-funcion.activa { opacity: 1; border-left-color: var(--foreground); }
 .pe-num {
   display: block;
   margin-bottom: 0.6rem;
@@ -1239,11 +957,11 @@ html:not(.dark) .pe-marco {
 }
 .pe-titulo {
   margin-bottom: 0.6rem;
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 700;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: 1.6rem;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
 }
 .pe-texto {
   max-width: 26rem;
@@ -1274,7 +992,7 @@ html:not(.dark) .pe-marco {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #f2a93b;
+  background: var(--olmo);
 }
 @media (min-width: 1024px) {
   .pe-titulo { font-size: 2.3rem; }
@@ -1290,7 +1008,7 @@ html:not(.dark) .pe-marco {
   overflow: hidden;
   container-type: inline-size;
   background:
-    radial-gradient(120% 90% at 88% 0%, rgba(242, 169, 59, 0.08), transparent 55%),
+    radial-gradient(120% 90% at 88% 0%, rgba(var(--olmo-rgb), 0.06), transparent 55%),
     #111218;
   color: rgba(255, 255, 255, 0.85);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
@@ -1334,8 +1052,8 @@ html:not(.dark) .pe-marco {
   justify-content: center;
   padding: 0.75em 1.35em;
   border-radius: 99px;
-  background: #f2a93b;
-  color: #1c1306;
+  background: var(--olmo);
+  color: var(--olmo-ink);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1480,7 +1198,7 @@ html:not(.dark) .pe-marco {
   text-align: center;
   color: rgba(255, 255, 255, 0.75);
 }
-.pw-fila i.elegido { background: #f2a93b; color: #1c1306; font-weight: 600; }
+.pw-fila i.elegido { background: var(--olmo); color: var(--olmo-ink); font-weight: 600; }
 .pw-personas {
   display: flex;
   justify-content: space-between;
@@ -1503,7 +1221,7 @@ html:not(.dark) .pe-marco {
   100% { transform: none; opacity: 1; }
 }
 @keyframes pw-elige {
-  to { background: #f2a93b; color: #1c1306; font-weight: 600; }
+  to { background: var(--olmo); color: var(--olmo-ink); font-weight: 600; }
 }
 @keyframes pe-aviso {
   from { opacity: 0; transform: translateY(-1em); }
@@ -1531,8 +1249,8 @@ html:not(.dark) .pe-marco {
   color: rgba(255, 255, 255, 0.55);
 }
 .pp-lado li b { width: 0.65em; height: 0.65em; border-radius: 0.2em; background: rgba(255, 255, 255, 0.18); }
-.pp-lado li.activo { background: rgba(242, 169, 59, 0.12); color: #fff; }
-.pp-lado li.activo b { background: #f2a93b; }
+.pp-lado li.activo { background: rgba(var(--olmo-rgb), 0.12); color: #fff; }
+.pp-lado li.activo b { background: var(--olmo); }
 .pp-usuario { display: flex; align-items: center; gap: 0.6em; margin-top: auto; font-size: 0.85em; color: rgba(255, 255, 255, 0.6); }
 .pp-usuario b {
   display: grid;
@@ -1581,7 +1299,7 @@ html:not(.dark) .pe-marco {
   width: 82%;
   height: 100%;
   border-radius: inherit;
-  background: #f2a93b;
+  background: var(--olmo);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
@@ -1610,8 +1328,8 @@ html:not(.dark) .pe-marco {
   transform-origin: bottom;
   transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(0.2s + var(--k) * 60ms);
 }
-.pp-grafico span.hoy { color: #f2a93b; font-weight: 600; }
-.pp-grafico span.hoy i { background: #f2a93b; }
+.pp-grafico span.hoy { color: var(--olmo); font-weight: 600; }
+.pp-grafico span.hoy i { background: var(--olmo); }
 .pp.activa .pp-grafico i { transform: none; }
 .pp-lista { margin: 0.6em 0 0; padding: 0; list-style: none; }
 .pp-lista li {
@@ -1638,7 +1356,7 @@ html:not(.dark) .pe-marco {
   color: #34d399;
   font-size: 0.82em;
 }
-.pp-lista i.pendiente { background: rgba(242, 169, 59, 0.14); color: #f2a93b; }
+.pp-lista i.pendiente { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); }
 .pp.activa .pp-lista li { opacity: 1; transform: none; }
 
 /* 3. El área de una clienta */
@@ -1652,8 +1370,8 @@ html:not(.dark) .pe-marco {
   width: 2.5em;
   height: 2.5em;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f2c27a, #b86c18);
-  color: #1c1306;
+  background: linear-gradient(135deg, #e7b4a2, #a35f4b);
+  color: #2a120b;
   font-size: 0.85em;
   font-weight: 700;
 }
@@ -1677,8 +1395,8 @@ html:not(.dark) .pe-marco {
 }
 .pc-tarjeta > em { font-size: 0.8em; color: rgba(255, 255, 255, 0.5); }
 .pc-proxima {
-  background: linear-gradient(135deg, rgba(242, 169, 59, 0.17), rgba(242, 169, 59, 0.03));
-  box-shadow: inset 0 0 0 1px rgba(242, 169, 59, 0.3);
+  background: linear-gradient(135deg, rgba(var(--olmo-rgb), 0.17), rgba(var(--olmo-rgb), 0.03));
+  box-shadow: inset 0 0 0 1px rgba(var(--olmo-rgb), 0.3);
 }
 .pc-proxima strong {
   font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
@@ -1696,8 +1414,8 @@ html:not(.dark) .pe-marco {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 .pc-sellos i.lleno {
-  background: radial-gradient(circle at 35% 30%, #f7c46e, #d98a1e);
-  box-shadow: 0 0 0.9em rgba(242, 169, 59, 0.35);
+  background: radial-gradient(circle at 35% 30%, #cfe0a6, #7d984a);
+  box-shadow: none;
   opacity: 0;
   transform: scale(0.4);
   transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1717,7 +1435,7 @@ html:not(.dark) .pe-marco {
 }
 .pc-historial li:first-child { border-top: 0; }
 .pc-historial li span { color: rgba(255, 255, 255, 0.65); }
-.pc-historial li i { font-size: 0.88em; color: #f2a93b; }
+.pc-historial li i { font-size: 0.88em; color: var(--olmo); }
 
 /* 4. Una campaña y su respuesta */
 .pcm {
@@ -1747,15 +1465,15 @@ html:not(.dark) .pe-marco {
 }
 .pcm-campo > em { flex: none; width: 5.2em; font-size: 0.85em; color: rgba(255, 255, 255, 0.5); }
 .pcm-chip { padding: 0.4em 0.9em; border-radius: 99px; background: rgba(255, 255, 255, 0.07); font-size: 0.9em; color: rgba(255, 255, 255, 0.8); }
-.pcm-chip.activo { background: rgba(242, 169, 59, 0.16); box-shadow: inset 0 0 0 1px rgba(242, 169, 59, 0.4); color: #f2a93b; }
+.pcm-chip.activo { background: rgba(var(--olmo-rgb), 0.16); box-shadow: inset 0 0 0 1px rgba(var(--olmo-rgb), 0.4); color: var(--olmo); }
 .pcm-cuenta { margin-left: auto; font-size: 0.85em; color: #34d399; }
 .pcm-mensaje { align-items: flex-start; }
 .pcm-mensaje p { flex: 1; min-width: 0; margin: 0; font-size: 0.95em; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
 .pcm-mensaje b {
   padding: 0.05em 0.35em;
   border-radius: 0.3em;
-  background: rgba(242, 169, 59, 0.15);
-  color: #f2a93b;
+  background: rgba(var(--olmo-rgb), 0.15);
+  color: var(--olmo);
   font-weight: 600;
 }
 .pcm-pie { display: flex; align-items: center; justify-content: space-between; margin-top: 0.3em; }
@@ -1803,8 +1521,8 @@ html:not(.dark) .pe-marco {
 .pcm-respuesta {
   align-self: flex-end;
   border-radius: 1.1em 1.1em 0.3em 1.1em;
-  background: #f2a93b;
-  color: #1c1306;
+  background: var(--olmo);
+  color: var(--olmo-ink);
   transition-delay: 1.15s;
 }
 .pcm-sistema {
@@ -1854,8 +1572,8 @@ html:not(.dark) .pe-marco {
   height: 0.5em;
   margin-left: -0.25em;
   border-radius: 50%;
-  background: #f2a93b;
-  box-shadow: 0 0 0.8em rgba(242, 169, 59, 0.9);
+  background: var(--olmo);
+  box-shadow: 0 0 0.8em rgba(var(--olmo-rgb), 0.9);
   opacity: 0;
 }
 .pa.activa .pa-via i { animation: pa-baja 2.6s cubic-bezier(0.65, 0, 0.35, 1) 0.8s infinite; }
@@ -1969,8 +1687,8 @@ html:not(.dark) .pe-marco {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 800;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: 2rem;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -1987,11 +1705,11 @@ html:not(.dark) .pe-marco {
   .pila-num { flex-direction: column; gap: 0.5rem; font-size: 2.6rem; }
 }
 .pila-titulo {
-  font-family: var(--font-bricolage), var(--font-geist-sans), sans-serif;
-  font-weight: 700;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
   font-size: 1.6rem;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 @media (min-width: 768px) { .pila-titulo { font-size: 2.1rem; } }
@@ -2017,8 +1735,7 @@ html:not(.dark) .pe-marco {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #f2a93b;
-  box-shadow: 0 0 8px rgba(242, 169, 59, 0.7);
+  background: var(--foreground);
 }
 .pila-prueba p { font-size: 1rem; line-height: 1.5; color: var(--foreground); }
 .pila-velo {
@@ -2039,7 +1756,7 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
   .pw.activa .pe-aviso,
   .pa.activa .pa-via i { animation: none; }
   .pw.activa .pe-aviso { opacity: 1; }
-  .pw .pw-objetivo { background: #f2a93b; color: #1c1306; font-weight: 600; }
+  .pw .pw-objetivo { background: var(--olmo); color: var(--olmo-ink); font-weight: 600; }
   .pp-barra i,
   .pp-grafico i,
   .pp-lista li,
@@ -2048,4 +1765,165 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
   .pcm-sistema,
   .pa-paso,
   .pa-hoy li { transition: none; opacity: 1; transform: none; }
+}
+
+/* ===================== EL PUNTO DE LA N =====================
+   El punto del logo hace de guía: sale de la n de la portada y se posa en
+   cada sitio marcado con `data-punto` (components/ui/PuntoGuia.tsx). Esos
+   sitios son huecos grabados en la página: esperan vacíos y se rellenan
+   cuando el punto pasa por ellos. Sin JavaScript o con movimiento reducido
+   no hay punto que viaje y los huecos se ven ya rellenos. */
+.punto-guia {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--pg-color, var(--foreground));
+  /* Una bola y no un círculo plano: la misma luz que la n de la portada,
+     de arriba a la izquierda. */
+  box-shadow:
+    inset -4px -5px 9px rgba(0, 0, 0, 0.26),
+    inset 3px 4px 7px rgba(255, 255, 255, 0.14),
+    0 8px 16px -8px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.3s ease, background-color 0.5s ease;
+  will-change: transform;
+}
+/* El relevo con la bola 3D es de golpe; las pausas, fundidas. */
+.punto-guia.visible { visibility: visible; }
+.punto-guia.en-pausa { opacity: 0; }
+
+.punto-hueco {
+  display: block;
+  border-radius: 50%;
+  background-color: var(--punto-color, var(--foreground));
+  transition: background-color 0.35s ease, box-shadow 0.35s ease;
+}
+.punto-vivo .punto-hueco:not(.pasado) {
+  background-color: var(--bg-deep);
+  box-shadow:
+    inset 0 1.5px 3px var(--engrave),
+    inset 0 -1px 0 var(--engrave-light),
+    0 0 0 1px color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+.caso-punto { width: 10px; height: 10px; flex: none; }
+
+/* ---------- La n en 3D de la portada ---------- */
+.n3d {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+}
+.n3d-lienzo,
+.n3d-imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.n3d-lienzo { display: block; }
+.n3d-imagen {
+  object-fit: contain;
+  transition: opacity 0.6s ease;
+}
+.n3d.n3d-listo .n3d-imagen { opacity: 0; }
+/* Dónde cae el punto en la imagen. Solo cuenta sin 3D. */
+.n3d-ancla {
+  position: absolute;
+  left: 50%;
+  top: 58.57%;
+  width: 9.3%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+/* La tercera línea del titular, subrayada a mano: la raya se dibuja al entrar. */
+.hero-subrayado {
+  --subrayado: 1;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 94%;
+  background-size: calc(var(--subrayado) * 100%) 0.065em;
+  padding-bottom: 0.05em;
+}
+
+/* ---------- Lo que hacemos, en tres palabras ---------- */
+.tres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2.75rem;
+}
+@media (min-width: 768px) {
+  .tres { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+}
+.tres-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  text-align: center;
+}
+.tres-hueco { width: 18px; height: 18px; margin-bottom: 0.5rem; }
+.tres-palabra {
+  font-weight: 600;
+  font-size: clamp(2.1rem, 3.6vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tres-linea {
+  max-width: 17rem;
+  color: var(--ink-soft);
+  transition: opacity 0.5s ease 0.08s;
+}
+/* Con el punto viajando, cada palabra espera apagada a que llegue. */
+.punto-vivo .tres-item:not(:has(.pasado)) .tres-palabra { opacity: 0.18; transform: translateY(6px); }
+.punto-vivo .tres-item:not(:has(.pasado)) .tres-linea { opacity: 0.3; }
+
+/* ---------- El final: la n del contacto ----------
+   El punto acaba aquí, en su sitio dentro de la n: el logo queda completo. */
+.casa {
+  position: relative;
+  width: 3.75rem;
+  aspect-ratio: 57 / 58;
+}
+.casa-n {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: var(--foreground);
+}
+.casa-hueco {
+  position: absolute;
+  left: 50%;
+  top: 70.69%;
+  width: 22.8%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+.casa:has(.casa-hueco.pasado) { animation: casa-clic 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes casa-clic { 35% { transform: scale(0.93); } }
+
+.contacto-marca {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--foreground) 9%, transparent);
+  color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .punto-hueco, .tres-palabra, .tres-linea { transition: none; }
+  .casa:has(.casa-hueco.pasado) { animation: none; }
 }
