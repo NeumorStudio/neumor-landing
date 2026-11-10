@@ -19,8 +19,8 @@ export const contentType = 'image/png'
 const logo = readFileSync(join(process.cwd(), 'public/marca/icono-192.png'))
 const logoSrc = `data:image/png;base64,${logo.toString('base64')}`
 
-// La n de cristal de la portada, a la derecha. Es JPEG porque este generador no lee WebP.
-const n = readFileSync(join(process.cwd(), 'public/marca/n-cristal-social.jpg'))
+// La n en relieve, a la derecha. Es JPEG porque este generador no lee WebP.
+const n = readFileSync(join(process.cwd(), 'public/marca/n-social.jpg'))
 const nSrc = `data:image/jpeg;base64,${n.toString('base64')}`
 
 export default function OpenGraphImage() {
@@ -59,9 +59,9 @@ export default function OpenGraphImage() {
           <span
             style={{
               fontSize: 40,
-              fontWeight: 700,
+              fontWeight: 600,
               color: '#f3f2ef',
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.035em',
             }}
           >
             NeumorStudio
@@ -97,7 +97,7 @@ export default function OpenGraphImage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ display: 'flex', width: 56, height: 4, backgroundColor: '#f2a93b' }} />
+          <div style={{ display: 'flex', width: 56, height: 4, backgroundColor: '#e8e6e1' }} />
           <span style={{ fontSize: 22, color: '#afaeb9', marginLeft: 20 }}>
             neumorstudio.com
           </span>

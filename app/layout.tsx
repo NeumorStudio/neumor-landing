@@ -71,6 +71,10 @@ export const metadata: Metadata = {
   description:
     "Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación de clientes y atención automática. Aplicaciones a medida con su panel, entregadas funcionando.",
   keywords: ['software a medida', 'aplicaciones web', 'panel de gestion', 'sistema de reservas', 'automatizacion para negocios', 'desarrollo web para empresas'],
+  // Verificación de propiedad en Google Search Console
+  verification: {
+    google: 'i4bLBMuOpIpocD0AUBG3LbWWjpNhsa7uVBP56bPNIiA',
+  },
   authors: [{ name: 'NeumorStudio' }],
   creator: 'NeumorStudio',
   publisher: 'NeumorStudio',

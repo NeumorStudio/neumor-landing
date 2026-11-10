@@ -134,9 +134,9 @@ export function Navbar() {
         <Link
           href="/"
           aria-label="NeumorStudio"
-          className="ng-wordmark nav-item !py-0.5 font-display text-lg md:text-xl font-bold tracking-tight relative z-10"
+          className="ng-wordmark nav-item !py-0.5 text-lg md:text-xl font-semibold tracking-[-0.035em] relative z-10"
         >
-          {/* Símbolo: la n, del color del texto y con el punto ámbar */}
+          {/* Símbolo: la n, a una tinta y del color del texto. El nombre va en Geist */}
           <LogoN className="w-8 h-8 mr-1.5" />
           {"NeumorStudio".split("").map((letter, i) => (
             <span key={i} aria-hidden="true">
@@ -146,7 +146,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-5">
+        <div className="hidden md:flex items-center gap-5">
           {navLinks.map((link) => (
             <button
               key={link.href}
@@ -172,7 +172,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile: toggle + menu button */}
-        <div className="lg:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center gap-2">
           <ThemeButton />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -193,7 +193,7 @@ export function Navbar() {
       {/* Mobile Menu */}
       <div
         className={`
-          lg:hidden overflow-hidden transition-all duration-300 ease-out
+          md:hidden overflow-hidden transition-all duration-300 ease-out
           ${isMobileMenuOpen ? "max-h-80 opacity-100 mt-2" : "max-h-0 opacity-0"}
         `}
       >
