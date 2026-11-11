@@ -31,16 +31,22 @@
   --card-shade: rgba(26, 26, 32, 0.07);
   --card-drop: rgba(26, 26, 32, 0.14);
 
-  /* Sin color de acento. La marca es tinta sobre porcelana y lo único que
-     destaca es el punto de la n, que también va en tinta. --accent es la
-     tinta para letras y líneas; --accent-fill, el relleno de la tecla
-     principal, con --accent-ink encima. */
-  --accent: #17181f;
-  --accent-fill: #17181f;
-  --accent-ink: #fbfaf8;
-  --accent-edge: #000000;
-  --accent-glow: rgba(23, 24, 31, 0.16);
-  --amber: var(--ink-soft);
+  /* Los dos colores de la marca: ámbar y azul, los de la n de la portada.
+     El ámbar es lo que se hace: el punto que guía, la tecla principal y las
+     líneas que deja el punto (--accent-fill, con --accent-ink encima). El
+     azul es luz y detalle: números, enlaces y el foco (--accent). Nunca un
+     botón. Todo lo demás sigue en neutros para que el color se note.
+     En claro van un tono más oscuros para que se lean sobre porcelana. */
+  --marca-ambar: #f2b33d;
+  --marca-azul: #2f62ee;
+  --ambar-texto: #8f5c06;
+  --azul-texto: #2a52c9;
+  --accent: #2a52c9;
+  --accent-fill: #eba729;
+  --accent-ink: #17181f;
+  --accent-edge: #b77a10;
+  --accent-glow: rgba(235, 167, 41, 0.28);
+  --amber: var(--ambar-texto);
 
   /* Olmo, el restaurante inventado del ejemplo, tiene su propio color: el
      verde oliva de su hoja. Así nadie lo confunde con nuestra marca. Sus
@@ -91,11 +97,13 @@
   --card-shade: rgba(0, 0, 0, 0.45);
   --card-drop: rgba(0, 0, 0, 0.55);
 
-  --accent: #e8e6e1;
-  --accent-fill: #e8e6e1;
+  --ambar-texto: #f2b33d;
+  --azul-texto: #82a3ff;
+  --accent: #82a3ff;
+  --accent-fill: #f2b33d;
   --accent-ink: #17181f;
-  --accent-edge: #a9a7a2;
-  --accent-glow: rgba(232, 230, 225, 0.14);
+  --accent-edge: #c98a1c;
+  --accent-glow: rgba(242, 179, 61, 0.22);
 
   /* En oscuro el bisel se apaga y la saturación baja: los mismos valores que
      en claro dan un cristal turbio y sucio sobre fondo oscuro. No es el claro
@@ -358,16 +366,22 @@ div[id] {
    Todo lo que se mueve se apaga con prefers-reduced-motion. */
 
 /* ---------- Pantalla de carga ---------- */
-.intro-capa { display: none; }
+.intro { display: none; }
 
-html.con-intro .intro-capa {
+html.con-intro .intro {
   --r: 0px;
-  --borde: 0;
   --cx: 50%;
   --cy: 50%;
   position: fixed;
   inset: 0;
   z-index: 100;
+  display: block;
+  /* Red de seguridad: si el JavaScript no llega a abrirla, se retira sola. */
+  animation: intro-retirada 0.5s ease 4.5s forwards;
+}
+.intro-capa {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -376,10 +390,24 @@ html.con-intro .intro-capa {
   background-color: var(--background);
   -webkit-mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--r) - 1px), #000 var(--r));
   mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--r) - 1px), #000 var(--r));
-  /* Red de seguridad: si el JavaScript no llega a abrirla, se retira sola. */
-  animation: intro-retirada 0.5s ease 4.5s forwards;
 }
 @keyframes intro-retirada { to { opacity: 0; visibility: hidden; } }
+/* El borde del agujero: el punto ámbar convertido en un anillo que crece,
+   como un eclipse. */
+.intro-anillo {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  translate: -50% -50%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2.5px var(--accent-fill),
+    0 0 22px 2px color-mix(in srgb, var(--accent-fill) 28%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
 
 .intro-marca {
   display: flex;
@@ -389,7 +417,7 @@ html.con-intro .intro-capa {
 }
 .intro-simbolo {
   position: relative;
-  width: clamp(84px, 11vw, 124px);
+  width: clamp(112px, 15vw, 172px);
   aspect-ratio: 57 / 58;
 }
 .intro-n {
@@ -406,17 +434,17 @@ html.con-intro .intro-capa {
 .intro-arco {
   stroke-dasharray: 1 1.2;
   stroke-dashoffset: 1.1;
-  animation: intro-traza 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.12s forwards;
+  animation: intro-traza 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.1s forwards;
 }
 @keyframes intro-traza { to { stroke-dashoffset: 0; } }
 
-/* El punto cae en su sitio, en tinta como la n. */
+/* El punto cae en su sitio, en ámbar. */
 .intro-punto {
-  fill: currentColor;
+  fill: var(--accent-fill);
   transform-box: fill-box;
   transform-origin: center;
   scale: 0;
-  animation: intro-punto 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.78s forwards;
+  animation: intro-punto 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.72s forwards;
 }
 @keyframes intro-punto { to { scale: 1; } }
 
@@ -435,7 +463,7 @@ html.con-intro .intro-capa {
 @keyframes intro-nombre { to { opacity: 1; translate: 0 0; } }
 
 /* ---------- La portada ---------- */
-.hero-logo { position: relative; }
+.hero-logo { position: relative; isolation: isolate; }
 
 /* ---------- Los casos ---------- */
 .casos-barra {
@@ -752,7 +780,7 @@ html:not(.dark) .escenario-navegador {
   color: var(--ink-soft);
 }
 .capitulo-n {
-  color: var(--foreground);
+  color: var(--azul-texto);
   font-variant-numeric: tabular-nums;
 }
 .capitulo-punto {
@@ -760,7 +788,7 @@ html:not(.dark) .escenario-navegador {
   height: 10px;
   flex: none;
   border-radius: 50%;
-  background: var(--foreground);
+  background: var(--accent-fill);
 }
 
 /* ---------- El coste ---------- */
@@ -1187,20 +1215,39 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
   transition: opacity 0.6s ease;
 }
 .n3d.n3d-listo .n3d-imagen { opacity: 0; }
+/* Dos luces detrás de la n, solo en la portada: ámbar arriba a la izquierda,
+   azul abajo a la derecha, como la luz que la tiñe. Suaves: son ambiente, no
+   un halo. */
+.hero-luces {
+  position: absolute;
+  inset: -22% -26%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side at 34% 32%, color-mix(in srgb, var(--marca-ambar) 22%, transparent), transparent),
+    radial-gradient(closest-side at 72% 74%, color-mix(in srgb, var(--marca-azul) 24%, transparent), transparent);
+}
+.dark .hero-luces {
+  background:
+    radial-gradient(closest-side at 34% 32%, color-mix(in srgb, var(--marca-ambar) 17%, transparent), transparent),
+    radial-gradient(closest-side at 72% 74%, color-mix(in srgb, var(--marca-azul) 30%, transparent), transparent);
+}
 /* Dónde cae el punto en la imagen. Solo cuenta sin 3D. */
 .n3d-ancla {
   position: absolute;
   left: 50%;
-  top: 58.57%;
-  width: 9.3%;
+  top: 63.8%;
+  width: 15.6%;
   aspect-ratio: 1;
   translate: -50% -50%;
   pointer-events: none;
 }
 
-/* La tercera línea del titular, subrayada a mano: la raya se dibuja al entrar. */
+/* La tercera línea del titular, en ámbar y subrayada a mano: la raya se
+   dibuja al entrar. */
 .hero-subrayado {
   --subrayado: 1;
+  color: var(--ambar-texto);
   background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-position: 0 94%;
