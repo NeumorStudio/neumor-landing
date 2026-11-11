@@ -260,8 +260,12 @@
   height: 4px;
   margin-left: -2px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-fill);
 }
+
+/* El punto del logo, en ámbar como el punto que guía la página. La n sigue
+   a una tinta. */
+.logo-n-punto { fill: var(--accent-fill); }
 
 @media (prefers-reduced-motion: reduce) {
   .nav-item:hover::after { animation: none; }
