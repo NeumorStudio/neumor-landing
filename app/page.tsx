@@ -32,13 +32,13 @@ const productFeatures: FuncionProducto[] = [
   {
     title: 'Panel de gestión',
     copy: 'Precios, horarios y contenidos, sin depender de nadie.',
-    ejemplo: 'El sábado de un vistazo: reservas, comensales, ocupación y quién llega ahora.',
+    ejemplo: 'El sábado de un vistazo: reservas, ocupación, quién llega ahora y cómo está la sala.',
     pantalla: 'panel',
   },
   {
     title: 'Área de clientes',
     copy: 'Un espacio privado que fideliza.',
-    ejemplo: 'Lucía ve su próxima reserva, la cambia sin llamar y lleva la cuenta de sus sellos.',
+    ejemplo: 'Lucía ve su próxima reserva, la cambia sin llamar y lleva la cuenta de sus sellos y sus visitas.',
     pantalla: 'clientes',
   },
   {
@@ -50,7 +50,7 @@ const productFeatures: FuncionProducto[] = [
   {
     title: 'Automatización',
     copy: 'Respuestas y recordatorios sin intervenir.',
-    ejemplo: 'Con cada reserva salen solos la confirmación, el recordatorio y la petición de reseña.',
+    ejemplo: 'Con cada reserva salen solos la confirmación, el recordatorio y la petición de reseña. Si alguien cancela, el hueco se ofrece al siguiente.',
     pantalla: 'automatizacion',
   },
 ]

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./olmo.css";
 import { ThemeProvider } from "@/components/theme/ThemeContext";
 
 const geistSans = Geist({
