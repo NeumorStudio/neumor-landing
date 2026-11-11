@@ -111,10 +111,20 @@ const dosCifras = (n: number) => String(n).padStart(2, '0')
  * punto de la n. El punto se posa en él al llegar a la sección: es lo que
  * cose la página como un recorrido de principio a fin.
  */
-function Capitulo({ n, nombre, centrado = true, ancla = true }: { n: number; nombre: string; centrado?: boolean; ancla?: boolean }) {
+function Capitulo({ n, nombre, centrado = true, ancla = true, caida = false }: { n: number; nombre: string; centrado?: boolean; ancla?: boolean; caida?: boolean }) {
   return (
     <p className={`capitulo${centrado ? ' justify-center' : ''}`}>
-      <span className={`capitulo-punto${ancla ? ' punto-hueco' : ''}`} data-punto={ancla ? '' : undefined} aria-hidden="true" />
+      {/* El punto brota aquí rodando desde la izquierda, donde no hay texto.
+          Con `caida` llega a la vista desde la bola de la portada, en
+          escritorio: ahí la n está al lado del titular y el camino va libre. */}
+      <span
+        className={`capitulo-punto${ancla ? ' punto-hueco' : ''}`}
+        data-punto={ancla ? '' : undefined}
+        data-punto-entra={ancla ? 'izquierda' : undefined}
+        data-punto-camino={ancla && caida ? 'linea' : undefined}
+        data-punto-camino-desde={ancla && caida ? '1024' : undefined}
+        aria-hidden="true"
+      />
       <span className="capitulo-n">{dosCifras(n)}</span>
       <span aria-hidden="true">—</span>
       {nombre}
@@ -205,49 +215,35 @@ export default function Home() {
         scrollTrigger: { trigger: '.cierre-coste', start: 'top 85%', end: 'top 45%', scrub: 0.4 },
       })
 
-      // El recorrido del proceso: la vía se llena al ritmo del scroll y cada
-      // paso se enciende al llegar. El punto que baja por ella es el de la n
-      // (PuntoGuia), el mismo que viene de la portada.
+      // El recorrido del proceso: el punto de la n (PuntoGuia) baja por la
+      // vía y la va llenando de tinta, y cada paso se enciende al llegar.
       const via = document.querySelector<HTMLElement>('.recorrido-via')
       if (via) {
         // Sin esta clase el recorrido se ve completo: si el JavaScript no
         // llega, los pasos no se quedan apagados.
         via.parentElement?.classList.add('vivo')
-        // A la misma altura de lectura por la que pasa el punto.
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: via,
-            start: () => `top ${lineaLecturaPct()}%`,
-            end: () => `bottom ${lineaLecturaPct()}%`,
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-          },
-        })
-          .fromTo('.recorrido-luz', { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
-          .fromTo('.recorrido-punto', { y: 0 }, { y: () => via.offsetHeight, ease: 'none' }, 0)
+        // Cada tecla se enciende cuando el punto la toca por arriba: él se
+        // mete debajo y la tecla se llena de tinta.
         gsap.utils.toArray<HTMLElement>('.paso').forEach((paso) => {
           ScrollTrigger.create({
             trigger: paso.querySelector('.paso-nodo'),
-            start: () => `center ${lineaLecturaPct()}%`,
+            start: () => `top ${lineaLecturaPct()}%`,
             toggleClass: { targets: paso, className: 'activo' },
           })
         })
       }
 
       // El coste: cada frase está apagada y se enciende al pasar por la
-      // altura de lectura. El punto de la n se posa en su marca al llegar.
+      // altura de lectura. El punto de la n baja de marca en marca y deja
+      // dibujada la línea que las une (eso lo hace PuntoGuia).
       const lista = document.querySelector<HTMLElement>('.coste-lista')
       if (lista) {
         lista.classList.add('vivo')
-        const puntos = gsap.utils.toArray<HTMLElement>('.coste-punto')
-        puntos.forEach((punto, i) => {
-          const tl = gsap.timeline({
+        gsap.utils.toArray<HTMLElement>('.coste-punto').forEach((punto) => {
+          gsap.timeline({
             scrollTrigger: { trigger: punto, start: 'top 80%', end: () => `top ${lineaLecturaPct()}%`, scrub: 0.4 },
           })
             .fromTo(punto.querySelector('.coste-frase'), { opacity: 0.16, x: -6 }, { opacity: 1, x: 0, ease: 'none' }, 0)
-          // El tramo de línea que sale de la frase anterior llega a esta a la vez que se enciende.
-          const tramo = puntos[i - 1]?.querySelector('.coste-tramo > span')
-          if (tramo) tl.fromTo(tramo, { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
         })
       }
 
@@ -369,7 +365,7 @@ export default function Home() {
             reconozca antes de que le vendamos nada. */}
         <NeumorfSection id="coste" className="max-w-6xl">
           <div className="reveal text-center mb-14 md:mb-20">
-            <Capitulo n={1} nombre="El problema" />
+            <Capitulo n={1} nombre="El problema" caida />
             <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4 text-balance">
               {costeManual.titulo}
             </h2>
@@ -379,14 +375,20 @@ export default function Home() {
           </div>
 
           {/* Cuatro frases grandes, apagadas, que se encienden una a una al
-              bajar. El punto de la n se posa en la marca de cada una. */}
+              bajar. El punto de la n baja de marca en marca por la línea que
+              las une, a la vista: ese carril va libre de texto. */}
           <ol className="coste-lista">
             {costeManual.puntos.map((punto, i) => (
-              <li key={punto.titulo} className="coste-punto">
+              <li key={punto.titulo} className="coste-punto" data-punto-grupo="">
                 {i < costeManual.puntos.length - 1 && (
                   <span className="coste-tramo" aria-hidden="true"><span /></span>
                 )}
-                <span className="coste-marca punto-hueco" data-punto="" aria-hidden="true" />
+                <span
+                  className="coste-marca punto-hueco"
+                  data-punto=""
+                  data-punto-camino={i > 0 ? 'linea' : undefined}
+                  aria-hidden="true"
+                />
                 <div className="coste-frase">
                   <h3 className="coste-titulo">{punto.titulo}</h3>
                   <p className="coste-detalle">{punto.detalle}</p>
@@ -415,9 +417,18 @@ export default function Home() {
           </div>
 
           <ol className="tres">
-            {queHacemos.map((q) => (
+            {queHacemos.map((q, i) => (
               <li key={q.palabra} className="tres-item">
-                <span className="tres-hueco punto-hueco" data-punto="" aria-hidden="true" />
+                {/* En fila (de tableta para arriba) el punto salta de un
+                    hueco al siguiente. En móvil van apiladas, con la palabra
+                    en medio, y brota en cada una. */}
+                <span
+                  className="tres-hueco punto-hueco"
+                  data-punto=""
+                  data-punto-camino={i > 0 ? 'salto' : undefined}
+                  data-punto-camino-desde={i > 0 ? '768' : undefined}
+                  aria-hidden="true"
+                />
                 <span className="tres-palabra font-display">{q.palabra}</span>
                 <span className="tres-linea">{q.linea}</span>
               </li>
@@ -518,12 +529,11 @@ export default function Home() {
           <div className="recorrido max-w-3xl mx-auto">
             <div className="recorrido-via" data-punto="via" data-punto-tam="14" aria-hidden="true">
               <span className="recorrido-luz" />
-              <span className="recorrido-punto" />
             </div>
             <ol className="recorrido-lista">
             {processSteps.map((step) => (
               <li key={step.day} className="paso">
-                <span className="paso-nodo step-key" aria-hidden="true">
+                <span className="paso-nodo step-key" data-punto-tapa="" aria-hidden="true">
                   {step.day.padStart(2, '0')}
                 </span>
                 <div className="paso-tarjeta ng-card p-6 md:p-7">

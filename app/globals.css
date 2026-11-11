@@ -320,25 +320,12 @@ div[id] {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--foreground);
+  background: var(--accent-fill);
   transform-origin: 50% 0;
 }
-.recorrido-punto {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border-radius: 50%;
-  background: var(--foreground);
-}
-.recorrido:not(.vivo) .recorrido-punto { display: none; }
-/* Con el punto de la n recorriendo la página, es él quien baja por la vía. */
-.punto-vivo .recorrido-punto { display: none; }
-
-/* Con JavaScript, cada paso espera apagado a que llegue la luz. */
-.recorrido.vivo .recorrido-luz { transform: scaleY(0); }
+/* Con JavaScript, cada paso espera apagado. El punto de la n baja por la vía
+   y la tinta la va llenando hasta donde él está (`--punto-via`, de 0 a 1). */
+.recorrido.vivo .recorrido-luz { transform: scaleY(var(--punto-via, 0)); }
 .recorrido.vivo .paso-tarjeta {
   opacity: 0.4;
   transform: translateY(8px);
@@ -349,9 +336,9 @@ div[id] {
   transform: none;
 }
 .paso.activo .paso-nodo {
-  color: var(--background);
-  background: var(--foreground);
-  border-color: var(--foreground);
+  color: var(--accent-ink);
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
   box-shadow: 0 1px 2px var(--ambient), 0 10px 20px -8px var(--card-drop);
 }
 
@@ -831,8 +818,11 @@ html:not(.dark) .escenario-navegador {
   inset: 0;
   border-radius: inherit;
   transform-origin: 50% 0;
-  background: var(--foreground);
+  background: var(--accent-fill);
 }
+/* El punto baja de una marca a la siguiente y deja la línea dibujada tras él:
+   `--punto-sale` va de 0 a 1 mientras viaja. */
+.punto-vivo .coste-tramo > span { transform: scaleY(var(--punto-sale, 0)); }
 
 /* ---------- Lo que construimos: producto en escena ---------- */
 .pe {
@@ -928,6 +918,18 @@ html:not(.dark) .pe-marco {
   bottom: 0;
   width: 2px;
   pointer-events: none;
+}
+/* En escritorio el punto baja por ella y la tinta la llena hasta donde va. */
+@media (min-width: 1024px) {
+  .punto-vivo .pe-rail::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent-fill);
+    transform-origin: 50% 0;
+    transform: scaleY(var(--punto-via, 0));
+  }
+  .punto-vivo .pe.vivo .pe-funcion.activa { border-left-color: color-mix(in srgb, var(--foreground) 10%, transparent); }
 }
 .pe-funcion {
   min-height: 30svh;
@@ -1772,35 +1774,42 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
    cada sitio marcado con `data-punto` (components/ui/PuntoGuia.tsx). Esos
    sitios son huecos grabados en la página: esperan vacíos y se rellenan
    cuando el punto pasa por ellos. Sin JavaScript o con movimiento reducido
-   no hay punto que viaje y los huecos se ven ya rellenos. */
+   no hay punto que viaje y los huecos se ven ya rellenos.
+
+   El punto vive pegado a la página y no a la pantalla: la capa ocupa todo el
+   documento y él se coloca en coordenadas del documento. Posado en un hueco
+   se mueve con él aunque el scroll vaya rápido. */
+.punto-capa {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  overflow: clip;
+  pointer-events: none;
+}
 .punto-guia {
-  position: fixed;
+  position: absolute;
   left: 0;
   top: 0;
-  z-index: 40;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--pg-color, var(--foreground));
+  background-color: var(--pg-color, var(--accent-fill));
   /* Una bola y no un círculo plano: la misma luz que la n de la portada,
      de arriba a la izquierda. */
   box-shadow:
     inset -4px -5px 9px rgba(0, 0, 0, 0.26),
     inset 3px 4px 7px rgba(255, 255, 255, 0.14),
-    0 8px 16px -8px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
+    5px 8px 14px -7px rgba(0, 0, 0, 0.45);
   visibility: hidden;
-  transition: opacity 0.3s ease, background-color 0.5s ease;
+  transition: background-color 0.5s ease;
   will-change: transform;
 }
-/* El relevo con la bola 3D es de golpe; las pausas, fundidas. */
 .punto-guia.visible { visibility: visible; }
-.punto-guia.en-pausa { opacity: 0; }
 
 .punto-hueco {
   display: block;
   border-radius: 50%;
-  background-color: var(--punto-color, var(--foreground));
+  background-color: var(--punto-color, var(--accent-fill));
   transition: background-color 0.35s ease, box-shadow 0.35s ease;
 }
 .punto-vivo .punto-hueco:not(.pasado) {
@@ -1809,6 +1818,13 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
     inset 0 1.5px 3px var(--engrave),
     inset 0 -1px 0 var(--engrave-light),
     0 0 0 1px color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+/* Al llenarse, el hueco suelta una onda fina. Va con el reloj y no con el
+   scroll: se ve aunque se pase deprisa. */
+.punto-vivo .punto-hueco.pasado { animation: hueco-lleno 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes hueco-lleno {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--punto-color, var(--accent-fill)) 38%, transparent); }
+  to { box-shadow: 0 0 0 8px transparent; }
 }
 .caso-punto { width: 10px; height: 10px; flex: none; }
 
@@ -1825,7 +1841,16 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
   width: 100%;
   height: 100%;
 }
-.n3d-lienzo { display: block; }
+/* El lienzo sobresale de la caja un 14 % por cada lado (ver NEnTres.tsx), para
+   que la bola y su sombra no se corten al caer. Es transparente y no recoge
+   el ratón: no tapa ni bloquea lo que tiene al lado. */
+.n3d-lienzo {
+  display: block;
+  inset: -14%;
+  width: 128%;
+  height: 128%;
+  pointer-events: none;
+}
 .n3d-imagen {
   object-fit: contain;
   transition: opacity 0.6s ease;
@@ -1925,5 +1950,6 @@ html:not(.dark) .pila-velo { background: rgba(26, 26, 32, 0.07); }
 
 @media (prefers-reduced-motion: reduce) {
   .punto-hueco, .tres-palabra, .tres-linea { transition: none; }
+  .punto-hueco.pasado { animation: none; }
   .casa:has(.casa-hueco.pasado) { animation: none; }
 }

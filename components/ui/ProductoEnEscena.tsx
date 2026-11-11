@@ -86,10 +86,10 @@ export function ProductoEnEscena({ funciones }: { funciones: FuncionProducto[] }
   const actual = funciones[activa].pantalla
 
   // El punto de la n (PuntoGuia) baja por la raya de la lista al ritmo de la
-  // función encendida. En móvil el navegador va fijo arriba y el punto se
-  // cruzaría con él, así que ahí se esconde mientras dura el ejemplo.
+  // función encendida. Solo en escritorio: en móvil el navegador va fijo
+  // arriba y el punto se cruzaría con él.
   return (
-    <div ref={raiz} className="pe" data-punto="pausa" data-punto-hasta="1023">
+    <div ref={raiz} className="pe">
       <div className="pe-visual" aria-hidden="true">
         <div className="pe-marco">
           <div className="escenario-barra">

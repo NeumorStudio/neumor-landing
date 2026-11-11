@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
+import gsap from 'gsap'
 import type * as THREE from 'three'
 import { puntoHero } from './punto-estado'
 
@@ -26,6 +27,16 @@ const FONDO = 10
 const BISEL = { alto: 2.4, ancho: 1.8 }
 /** Parte del recorrido de la portada en la que la bola se suelta. */
 const SUELTA = 0.2
+/** Lo que cae la bola dentro de la escena antes del relevo, en unidades de la n. */
+const CAIDA = 17
+/** Lo que sale hacia delante al soltarse. */
+const SALIDA = 9
+// El lienzo es más grande que su caja por los cuatro lados (ver `.n3d-lienzo`):
+// así la bola y su sombra caen sin que el borde las corte. La n no cambia de
+// tamaño: la cámara abre el ángulo en la misma proporción.
+const HOLGURA = 0.14
+const AMPLIA = 1 + 2 * HOLGURA
+const ANGULO = (2 * Math.atan(AMPLIA * Math.tan((22 * Math.PI) / 360)) * 180) / Math.PI
 
 // La bola va en tinta, como el punto del logo: carbón en claro y porcelana en
 // oscuro. En oscuro lleva algo de luz propia para que no se quede gris.
@@ -36,7 +47,7 @@ const TEMAS = {
 
 const limita = (v: number) => Math.min(1, Math.max(0, v))
 const sale = (t: number) => 1 - Math.pow(1 - t, 3)
-const cae = (t: number) => t * t * t
+const cae = (t: number) => t * t
 
 export function NEnTres({ className = '' }: { className?: string }) {
   const caja = useRef<HTMLDivElement>(null)
@@ -65,7 +76,7 @@ export function NEnTres({ className = '' }: { className?: string }) {
       el.appendChild(lienzo)
 
       const escena = new T.Scene()
-      const camara = new T.PerspectiveCamera(22, 1, 10, 600)
+      const camara = new T.PerspectiveCamera(ANGULO, 1, 10, 600)
       camara.position.set(0, 0, 215)
 
       // La n: el contorno del logo, encogido lo que luego crece el bisel.
@@ -149,7 +160,7 @@ export function NEnTres({ className = '' }: { className?: string }) {
 
       const medir = () => {
         const r = el.getBoundingClientRect()
-        const w = Math.max(1, r.width), h = Math.max(1, r.height)
+        const w = Math.max(1, r.width * AMPLIA), h = Math.max(1, r.height * AMPLIA)
         renderer.setSize(w, h, false)
         camara.aspect = w / h
         camara.updateProjectionMatrix()
@@ -174,11 +185,14 @@ export function NEnTres({ className = '' }: { className?: string }) {
       const v = new T.Vector3()
       const enMundo = new T.Vector3()
       const tan = Math.tan(T.MathUtils.degToRad(camara.fov / 2))
-      let rx = 0, ry = 0, raf = 0, primera = true
+      let rx = 0, ry = 0, primera = true
       const t0 = performance.now()
 
-      const bucle = (ahora: number) => {
-        raf = requestAnimationFrame(bucle)
+      // Va en el mismo reloj que el punto de la página y delante de él: así
+      // el punto lee siempre dónde está la bola en este mismo fotograma y el
+      // relevo entre los dos es exacto.
+      const bucle = () => {
+        const ahora = performance.now()
         const r = el.getBoundingClientRect()
         // De 0 (arriba del todo) a 1 (cuando el lienzo ha salido por arriba).
         const fin = r.bottom + scrollY
@@ -190,19 +204,31 @@ export function NEnTres({ className = '' }: { className?: string }) {
         grupo.rotation.set(rx - p * 0.42, ry, 0)
         grupo.position.y = p * 8
 
-        // La bola: sale hacia delante y cae por el arco.
+        // La bola: sale hacia delante y cae por el arco. Cae hasta los pies de
+        // la n y no más: ahí la releva el punto de la página, antes de que el
+        // borde del lienzo la corte.
         const a = limita(p / 0.08), bq = limita((p - 0.05) / (SUELTA - 0.05))
-        bola.position.z = zBola + sale(a) * 15
-        bola.position.y = N.punto.y - cae(bq) * 27
-        bola.visible = p < SUELTA
+        bola.position.z = zBola + sale(a) * SALIDA
+        bola.position.y = N.punto.y - cae(bq) * CAIDA
+        // Al soltarse deja de pintarse (la releva el punto de la página), pero
+        // sigue dando sombra un momento mientras se encoge: la sombra se apaga
+        // suave en vez de desaparecer de golpe.
+        const suelta = p >= SUELTA
+        const resto = limita((p - SUELTA) / 0.1)
+        matBola.colorWrite = !suelta
+        matBola.depthWrite = !suelta
+        bola.scale.setScalar(1 - resto)
+        bola.visible = resto < 1
 
-        // Dónde está la bola en la pantalla, para que el punto la recoja ahí.
+        // Dónde está la bola en la página, para que el punto la recoja ahí. Va
+        // en coordenadas del documento: el punto vive pegado a la página.
         bola.updateWorldMatrix(true, false)
         enMundo.setFromMatrixPosition(bola.matrixWorld)
         v.copy(enMundo).project(camara)
-        const pxPorUnidad = r.height / (2 * camara.position.distanceTo(enMundo) * tan)
-        puntoHero.x = r.left + ((v.x + 1) / 2) * r.width
-        puntoHero.y = r.top + ((1 - v.y) / 2) * r.height
+        const lado = r.width * AMPLIA, alto = r.height * AMPLIA
+        const pxPorUnidad = alto / (2 * camara.position.distanceTo(enMundo) * tan)
+        puntoHero.x = r.left - r.width * HOLGURA + scrollX + ((v.x + 1) / 2) * lado
+        puntoHero.y = r.top - r.height * HOLGURA + scrollY + ((1 - v.y) / 2) * alto
         puntoHero.r = N.punto.r * pxPorUnidad
         puntoHero.suelta = SUELTA * fin
         puntoHero.listo = true
@@ -215,10 +241,10 @@ export function NEnTres({ className = '' }: { className?: string }) {
           }
         }
       }
-      raf = requestAnimationFrame(bucle)
+      gsap.ticker.add(bucle, false, true)
 
       limpiar = () => {
-        cancelAnimationFrame(raf)
+        gsap.ticker.remove(bucle)
         window.removeEventListener('pointermove', mover)
         ro.disconnect()
         io.disconnect()
