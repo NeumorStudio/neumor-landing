@@ -103,4 +103,8 @@ await guarda("n-relieve-oscuro.webp", acabado("relieveOscuro"), 1600, { formato:
 await guarda("n-relieve-claro-sin-fondo.webp", acabado("relieveClaro", { fondo: false, margen: 20 }), 1400, { formato: "webp" });
 await guarda("n-relieve-oscuro-sin-fondo.webp", acabado("relieveOscuro", { fondo: false, margen: 20 }), 1400, { formato: "webp" });
 
+// Para la imagen al compartir enlaces: sobre carbón, el fondo de esa imagen. Es
+// JPEG porque el generador de Next no lee WebP.
+await guarda("n-social.jpg", acabado("relieveOscuro", { fondo: CARBON, margen: 20 }), 640, { formato: "jpg" });
+
 console.log("Kit generado en", DIR, "y", DIR_WEB);

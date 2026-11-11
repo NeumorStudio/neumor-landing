@@ -7,7 +7,7 @@
  * pinta solo el elegido.
  *
  * Añadir el siguiente es escribir un objeto más. Si trae una pieza propia
- * —Salonio tiene su agenda animada, Regalado su comparador— se declara en
+ * —Regalado tiene su comparador— se declara en
  * `pieza` y el panel la coloca; lo demás sale igual para todos.
  */
 
@@ -16,13 +16,15 @@ export type Naturaleza = 'Producto propio' | 'Encargo de cliente'
 /** Las piezas interactivas que sabe pintar el panel. Es una lista cerrada a
  *  propósito: así el componente no recibe JSX desde los datos y el fichero se
  *  queda siendo contenido, no maquetación. */
-export type PiezaProyecto = 'agenda-salonio' | 'antes-despues-regalado'
+export type PiezaProyecto = 'antes-despues-regalado'
 
 export type Proyecto = {
   id: string
   nombre: string
   /** Lo que va en la placa del selector, debajo del nombre. */
   naturaleza: Naturaleza
+  /** El color de su marca. El punto de la n lo toma al posarse en el caso. */
+  color: string
   titulo: string
   entradilla: string
   insignias: string[]
@@ -38,11 +40,11 @@ export const proyectos: Proyecto[] = [
     id: 'salonio',
     nombre: 'Salonio',
     naturaleza: 'Producto propio',
+    color: '#D9A43A',
     titulo: 'Salonio — reservas para peluquerías',
     entradilla:
       'Los clientes reservan solos a cualquier hora. El dueño deja de coger el teléfono a mitad de un corte.',
     insignias: ['Peluquerías y barberías'],
-    pieza: 'agenda-salonio',
     capturas: [
       {
         src: '/images/salonio-web.webp',
@@ -77,6 +79,7 @@ export const proyectos: Proyecto[] = [
     id: 'regalado',
     nombre: 'González-Regalado',
     naturaleza: 'Encargo de cliente',
+    color: '#B59A62',
     titulo: 'González-Regalado Gourmet — catálogo y escaparate',
     entradilla:
       'Tenían una web de una sola pantalla que no enseñaba lo que venden. Ahora tienen su catálogo entero en siete idiomas.',

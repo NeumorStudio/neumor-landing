@@ -3,45 +3,65 @@
 import { useEffect, useRef } from 'react'
 import { ContactForm } from "@/components/forms/ContactForm"
 import { Proyectos } from "@/components/ui/Proyectos"
+import { ProductoEnEscena, type FuncionProducto } from "@/components/ui/ProductoEnEscena"
 import { NeumorfSection } from "@/components/ui/NeumorfSection"
 import { Navbar } from "@/components/ui/Navbar"
+import { LogoN } from "@/components/ui/LogoN"
+import { NEnTres } from "@/components/ui/NEnTres"
+import { PuntoGuia } from "@/components/ui/PuntoGuia"
+import { lineaLecturaPct } from "@/components/ui/punto-estado"
+import { N_FORMA } from "@/components/ui/n-forma"
 import { marca, sitio, costeManual } from "@/lib/content/marca"
 import { BrilloLiquido } from "@/components/ui/BrilloLiquido"
+import { Intro, EVENTO_INTRO, introActiva } from "@/components/ui/Intro"
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Draggable } from 'gsap/Draggable'
-import { InertiaPlugin } from 'gsap/InertiaPlugin'
-import Matter from 'matter-js'
 
-gsap.registerPlugin(ScrollTrigger, Draggable, InertiaPlugin)
+gsap.registerPlugin(ScrollTrigger)
 
-// Piezas de la mesa de taller del hero
-const toyPieces = [
-  { label: 'web', lab: false },
-  { label: 'panel', lab: false },
-  { label: 'bot', lab: false },
-  { label: 'api', lab: false },
-  { label: 'juego', lab: true },
+// Lo que incluye el producto webs+panel. Cada función lleva su pantalla
+// ilustrada en ProductoEnEscena, todas del mismo ejemplo inventado (Olmo, un
+// restaurante), y una línea que cuenta qué se ve en ella.
+const productFeatures: FuncionProducto[] = [
+  {
+    title: 'Web que convierte',
+    copy: 'Pensada para que la visita acabe siendo cliente.',
+    ejemplo: 'La portada de Olmo con la reserva a mano: se elige día y hora, y entra confirmada.',
+    pantalla: 'web',
+  },
+  {
+    title: 'Panel de gestión',
+    copy: 'Precios, horarios y contenidos, sin depender de nadie.',
+    ejemplo: 'El sábado de un vistazo: reservas, ocupación, quién llega ahora y cómo está la sala.',
+    pantalla: 'panel',
+  },
+  {
+    title: 'Área de clientes',
+    copy: 'Un espacio privado que fideliza.',
+    ejemplo: 'Lucía ve su próxima reserva, la cambia sin llamar y lleva la cuenta de sus sellos y sus visitas.',
+    pantalla: 'clientes',
+  },
+  {
+    title: 'Campañas',
+    copy: 'Mensajes segmentados en el momento oportuno.',
+    ejemplo: 'Un mensaje a quien lleva dos meses sin venir. Lucía contesta y su mesa queda reservada.',
+    pantalla: 'campanas',
+  },
+  {
+    title: 'Automatización',
+    copy: 'Respuestas y recordatorios sin intervenir.',
+    ejemplo: 'Con cada reserva salen solos la confirmación, el recordatorio y la petición de reseña. Si alguien cancela, el hueco se ofrece al siguiente.',
+    pantalla: 'automatizacion',
+  },
 ]
 
-// Lo que incluye el producto webs+panel.
-// Los iconos salen todos de la misma rejilla generada de una vez, así que
-// comparten grosor de trazo, relieve y luz: es lo que hace que se lean como un
-// set y no como nueve iconos sueltos de sitios distintos.
-const productFeatures = [
-  { title: 'Web que convierte', copy: 'Pensada para que la visita acabe siendo cliente.', icono: 'web' },
-  { title: 'Panel de gestión', copy: 'Precios, horarios y contenidos, sin depender de nadie.', icono: 'panel' },
-  { title: 'Área de clientes', copy: 'Un espacio privado que fideliza.', icono: 'clientes' },
-  { title: 'Campañas', copy: 'Mensajes segmentados en el momento oportuno.', icono: 'campanas' },
-  { title: 'Automatización', copy: 'Respuestas y recordatorios sin intervenir.', icono: 'automatizacion' },
+// Lo que hacemos, en tres palabras. El punto salta de una a otra al bajar y
+// cada una se enciende cuando la toca.
+const queHacemos = [
+  { palabra: 'Webs', linea: 'que convierten visitas en clientes' },
+  { palabra: 'Paneles', linea: 'para llevar el negocio sin depender de nadie' },
+  { palabra: 'Automatización', linea: 'para lo que hoy se hace a mano' },
 ]
-
-/**
- * Aquí había dos vídeos de stock rotulados «La web pública» y «El panel de
- * gestión». Se leían como trabajo nuestro sin serlo, y ya no hacen falta:
- * Salonio está en producción y la sección de abajo enseña el producto real.
- */
-
 
 const nichos = [
   'Restaurantes', 'Salones', 'Clínicas',
@@ -84,115 +104,60 @@ const processSteps = [
   },
 ]
 
+const dosCifras = (n: number) => String(n).padStart(2, '0')
+
+/**
+ * La cabecera de cada sección: un número de capítulo con un hueco para el
+ * punto de la n. El punto se posa en él al llegar a la sección: es lo que
+ * cose la página como un recorrido de principio a fin.
+ */
+function Capitulo({ n, nombre, centrado = true, ancla = true, caida = false }: { n: number; nombre: string; centrado?: boolean; ancla?: boolean; caida?: boolean }) {
+  return (
+    <p className={`capitulo${centrado ? ' justify-center' : ''}`}>
+      {/* El punto brota aquí rodando desde la izquierda, donde no hay texto.
+          Con `caida` llega a la vista desde la bola de la portada, en
+          escritorio: ahí la n está al lado del titular y el camino va libre. */}
+      <span
+        className={`capitulo-punto${ancla ? ' punto-hueco' : ''}`}
+        data-punto={ancla ? '' : undefined}
+        data-punto-entra={ancla ? 'izquierda' : undefined}
+        data-punto-camino={ancla && caida ? 'linea' : undefined}
+        data-punto-camino-desde={ancla && caida ? '1024' : undefined}
+        aria-hidden="true"
+      />
+      <span className="capitulo-n">{dosCifras(n)}</span>
+      <span aria-hidden="true">—</span>
+      {nombre}
+    </p>
+  )
+}
+
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const contactRef = useRef<HTMLDivElement>(null)
-  const trayRef = useRef<HTMLDivElement>(null)
 
-  // ========== MESA DE TALLER: al primer toque las piezas cobran físicas ==========
+  // ========== LA VÍA DEL RECORRIDO ==========
+  // Va del centro del primer paso al centro del último. Depende del alto de
+  // las tarjetas, así que se mide en vez de fijarla en el CSS.
   useEffect(() => {
-    const tray = trayRef.current
-    if (!tray) return
-
-    // Arrastre suave inicial; muere en cuanto entran las físicas
-    const draggables = Draggable.create('.toy-piece', {
-      type: 'x,y',
-      bounds: tray,
-      inertia: true,
-      edgeResistance: 0.7,
-      onPress() { this.target.classList.add('dragging') },
-      onRelease() { this.target.classList.remove('dragging') },
-    })
-
-    let engine: Matter.Engine | null = null
-    let raf = 0
-    let releaseOutside: (() => void) | null = null
-
-    const activatePhysics = () => {
-      draggables.forEach((d) => d.kill())
-
-      const trayRect = tray.getBoundingClientRect()
-      const w = trayRect.width
-      const h = trayRect.height
-      engine = Matter.Engine.create({ enableSleeping: true })
-      engine.gravity.y = 1.2
-
-      // ponytail: paredes fijadas al tamaño actual; un resize con físicas activas las desajusta
-      const grosor = 200
-      Matter.Composite.add(engine.world, [
-        Matter.Bodies.rectangle(w / 2, h + grosor / 2, w * 2, grosor, { isStatic: true }),
-        Matter.Bodies.rectangle(w / 2, -grosor / 2, w * 2, grosor, { isStatic: true }),
-        Matter.Bodies.rectangle(-grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
-        Matter.Bodies.rectangle(w + grosor / 2, h / 2, grosor, h * 4, { isStatic: true }),
-      ])
-
-      const items = Array.from(tray.querySelectorAll<HTMLElement>('.toy-piece')).map((el) => {
-        const r = el.getBoundingClientRect()
-        const cx = r.left - trayRect.left + r.width / 2
-        const cy = r.top - trayRect.top + r.height / 2
-        // Centro de la pieza en el flujo, sin el transform que dejó el arrastre
-        const baseX = cx - (Number(gsap.getProperty(el, 'x')) || 0)
-        const baseY = cy - (Number(gsap.getProperty(el, 'y')) || 0)
-        const body = Matter.Bodies.rectangle(cx, cy, r.width, r.height, {
-          chamfer: { radius: 13 },
-          restitution: 0.25,
-          friction: 0.6,
-          frictionAir: 0.02,
-        })
-        Matter.Composite.add(engine!.world, body)
-        return { el, body, baseX, baseY }
-      })
-
-      // Agarrar, lanzar y apilar con el puntero
-      const mouse = Matter.Mouse.create(tray)
-      const mouseConstraint = Matter.MouseConstraint.create(engine, {
-        mouse,
-        constraint: { stiffness: 0.2, damping: 0.1 },
-      })
-      Matter.Composite.add(engine.world, mouseConstraint)
-
-      Matter.Events.on(mouseConstraint, 'startdrag', (e) => {
-        const body = (e as unknown as { body?: Matter.Body }).body
-        items.find((i) => i.body === body)?.el.classList.add('dragging')
-      })
-      Matter.Events.on(mouseConstraint, 'enddrag', () => {
-        items.forEach((i) => i.el.classList.remove('dragging'))
-      })
-
-      // Si el puntero se suelta fuera de la bandeja, la pieza quedaría agarrada
-      releaseOutside = () => { mouse.button = -1 }
-      window.addEventListener('pointerup', releaseOutside)
-
-      let last = performance.now()
-      const step = (now: number) => {
-        Matter.Engine.update(engine!, Math.min(now - last, 33))
-        last = now
-        for (const { el, body, baseX, baseY } of items) {
-          el.style.transform =
-            `translate(${body.position.x - baseX}px, ${body.position.y - baseY}px) rotate(${body.angle}rad)`
-        }
-        raf = requestAnimationFrame(step)
-      }
-      raf = requestAnimationFrame(step)
+    const via = document.querySelector<HTMLElement>('.recorrido-via')
+    const nodos = document.querySelectorAll<HTMLElement>('.paso-nodo')
+    const caja = via?.parentElement
+    if (!via || !caja || nodos.length < 2) return
+    let primera = true
+    const medir = () => {
+      const a = nodos[0].getBoundingClientRect()
+      const b = nodos[nodos.length - 1].getBoundingClientRect()
+      const c = caja.getBoundingClientRect()
+      via.style.top = `${a.top - c.top + a.height / 2}px`
+      via.style.left = `${a.left - c.left + a.width / 2}px`
+      via.style.height = `${b.top - a.top}px`
+      if (!primera) ScrollTrigger.refresh()
+      primera = false
     }
-
-    const onFirstTouch = (e: PointerEvent) => {
-      if (!(e.target as Element).closest('.toy-piece')) return
-      tray.removeEventListener('pointerdown', onFirstTouch, true)
-      activatePhysics()
-    }
-    // Con reduced motion se quedan en arrastre simple, sin caída
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      tray.addEventListener('pointerdown', onFirstTouch, true)
-    }
-
-    return () => {
-      tray.removeEventListener('pointerdown', onFirstTouch, true)
-      if (releaseOutside) window.removeEventListener('pointerup', releaseOutside)
-      cancelAnimationFrame(raf)
-      if (engine) Matter.Engine.clear(engine)
-      draggables.forEach((d) => d.kill())
-    }
+    medir()
+    const ro = new ResizeObserver(medir)
+    ro.observe(caja)
+    return () => ro.disconnect()
   }, [])
 
   // ========== ENTRADAS Y REVEALS ==========
@@ -201,26 +166,40 @@ export default function Home() {
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Hero: una sola entrada orquestada
-      gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 })
+      // Hero: una sola entrada orquestada. Si hay pantalla de carga, espera a
+      // que la web empiece a abrirse desde el punto y entra a la vez.
+      const conIntro = introActiva()
+      const entrada = gsap.timeline({ paused: conIntro, defaults: { ease: 'power3.out' } })
+      if (conIntro) {
+        entrada.timeScale(1.35)
+        const empezar = () => { entrada.play() }
+        window.addEventListener(EVENTO_INTRO, empezar, { once: true })
+        gsap.delayedCall(5, empezar)
+      }
+      entrada
+        .fromTo('.hero-logo', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 1.1 })
+        .fromTo('.hero-eyebrow', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.8')
         .fromTo('.hero-line', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.7 }, '-=0.2')
-        .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+        .fromTo('.hero-subrayado', { '--subrayado': 0 }, { '--subrayado': 1, duration: 0.8, ease: 'power2.inOut' }, '-=0.25')
+        .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.6')
         .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.5 }, '-=0.35')
-        .fromTo('.toy-tray', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
-        .fromTo('.toy-piece', { opacity: 0, scale: 0.6, y: -40 }, { opacity: 1, scale: 1, y: 0, stagger: 0.07, duration: 0.6, ease: 'back.out(2)' }, '-=0.4')
 
-      // Reveal genérico por sección
+      // Reveal genérico por sección: el contenido sube desde la profundidad,
+      // tumbado unos grados hacia atrás, y se enfoca al ponerse de pie. El
+      // filtro y el giro se quitan al acabar para no dejar capas vivas.
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
         gsap.fromTo(
           el.children,
-          { opacity: 0, y: 28 },
+          { opacity: 0, y: 40, rotationX: 9, transformPerspective: 1200, transformOrigin: '50% 100%', filter: 'blur(8px)' },
           {
             opacity: 1,
             y: 0,
+            rotationX: 0,
+            filter: 'blur(0px)',
             stagger: 0.08,
-            duration: 0.7,
-            ease: 'power2.out',
+            duration: 0.9,
+            ease: 'power3.out',
+            clearProps: 'filter,transform',
             scrollTrigger: {
               trigger: el,
               start: 'top 80%',
@@ -228,6 +207,63 @@ export default function Home() {
             },
           }
         )
+      })
+
+      // El cierre del coste se ilumina palabra a palabra al leerlo.
+      gsap.fromTo('.cierre-palabra', { opacity: 0.18 }, {
+        opacity: 1, stagger: 0.12, ease: 'none',
+        scrollTrigger: { trigger: '.cierre-coste', start: 'top 85%', end: 'top 45%', scrub: 0.4 },
+      })
+
+      // El recorrido del proceso: el punto de la n (PuntoGuia) baja por la
+      // vía y la va llenando de tinta, y cada paso se enciende al llegar.
+      const via = document.querySelector<HTMLElement>('.recorrido-via')
+      if (via) {
+        // Sin esta clase el recorrido se ve completo: si el JavaScript no
+        // llega, los pasos no se quedan apagados.
+        via.parentElement?.classList.add('vivo')
+        // Cada tecla se enciende cuando el punto la toca por arriba: él se
+        // mete debajo y la tecla se llena de tinta.
+        gsap.utils.toArray<HTMLElement>('.paso').forEach((paso) => {
+          ScrollTrigger.create({
+            trigger: paso.querySelector('.paso-nodo'),
+            start: () => `top ${lineaLecturaPct()}%`,
+            toggleClass: { targets: paso, className: 'activo' },
+          })
+        })
+      }
+
+      // El coste: cada frase está apagada y se enciende al pasar por la
+      // altura de lectura. El punto de la n baja de marca en marca y deja
+      // dibujada la línea que las une (eso lo hace PuntoGuia).
+      const lista = document.querySelector<HTMLElement>('.coste-lista')
+      if (lista) {
+        lista.classList.add('vivo')
+        gsap.utils.toArray<HTMLElement>('.coste-punto').forEach((punto) => {
+          gsap.timeline({
+            scrollTrigger: { trigger: punto, start: 'top 80%', end: () => `top ${lineaLecturaPct()}%`, scrub: 0.4 },
+          })
+            .fromTo(punto.querySelector('.coste-frase'), { opacity: 0.16, x: -6 }, { opacity: 1, x: 0, ease: 'none' }, 0)
+        })
+      }
+
+      // Los compromisos se apilan: cada tarjeta se queda pegada arriba y la
+      // siguiente sube por encima. La de debajo se encoge y se oscurece un poco.
+      const cartas = gsap.utils.toArray<HTMLElement>('.pila-carta')
+      cartas.forEach((carta, i) => {
+        const siguiente = cartas[i + 1]
+        if (!siguiente) return
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: siguiente,
+            start: 'top bottom',
+            end: () => `top ${parseFloat(getComputedStyle(siguiente).top) || 96}px`,
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        })
+          .to(carta, { scale: 0.94, ease: 'none' }, 0)
+          .to(carta.querySelector('.pila-velo'), { opacity: 1, ease: 'none' }, 0)
       })
 
       // Pills de nichos
@@ -246,7 +282,17 @@ export default function Home() {
       )
     }, containerRef)
 
-    return () => ctx.revert()
+    return () => {
+      ctx.revert()
+      document.querySelector('.recorrido')?.classList.remove('vivo')
+      document.querySelector('.coste-lista')?.classList.remove('vivo')
+    }
+  }, [])
+
+  // Sin movimiento, el recorrido se ve ya completo.
+  useEffect(() => {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    document.querySelectorAll('.paso').forEach((p) => p.classList.add('activo'))
   }, [])
 
   useEffect(() => {
@@ -254,66 +300,63 @@ export default function Home() {
   }, [])
 
   return (
-    <div ref={containerRef} className="relative min-h-screen overflow-x-hidden">
+    <div ref={containerRef} className="relative min-h-screen overflow-x-clip">
+      <Intro />
       <BrilloLiquido />
+      <PuntoGuia />
       <Navbar />
 
       <main className="min-h-screen pt-20">
-        {/* ========== HERO: MANIFIESTO + MESA DE TALLER ========== */}
-        <NeumorfSection className="py-14 md:py-20 relative">
-          <div className="hero-fondo" aria-hidden="true" />
-          <div className="max-w-3xl mx-auto text-center relative z-10">
-            <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] mb-6">
-              {marca.descriptor}
-            </p>
+        {/* ========== HERO: EL TITULAR Y LA N EN 3D ==========
+            La n sale de la pared como una tecla y la bola de dentro es el
+            punto que acompaña toda la página. */}
+        <NeumorfSection className="max-w-6xl !pt-6 !pb-10 lg:!pt-10 md:!pb-12 relative flex flex-col lg:min-h-[calc(100svh-5rem)]">
+          <div className="relative z-10 flex-1 grid items-center gap-4 lg:gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            <div className="text-center lg:text-left">
+              <p className="hero-eyebrow font-mono text-xs tracking-[0.25em] uppercase text-[var(--ink-soft)] text-balance mb-6">
+                {marca.descriptor}
+              </p>
 
-            {/* El titular es la misión dicha en una línea. Habla de lo que gana
-                quien paga, no de lo que hacemos nosotros. */}
-            <h1 className="font-display text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-6">
-              <span className="hero-line block">Montamos el software</span>
-              <span className="hero-line block">que tu negocio</span>
-              <span className="hero-line block text-[var(--accent)]">todavía hace a mano.</span>
-            </h1>
+              {/* El titular es la misión dicha en una línea. Habla de lo que gana
+                  quien paga, no de lo que hacemos nosotros. */}
+              <h1 className="font-display text-[2.05rem] sm:text-5xl xl:text-[3.4rem] font-semibold leading-[1.04] mb-6">
+                <span className="hero-line block">Montamos el software</span>
+                <span className="hero-line block">que tu negocio</span>
+                <span className="hero-line block"><span className="hero-subrayado">todavía hace a mano.</span></span>
+              </h1>
 
-            <p className="hero-desc text-base md:text-lg text-[var(--ink-soft)] mb-8 max-w-xl mx-auto">
-              {marca.subtitular}
-            </p>
+              <p className="hero-desc text-base md:text-lg text-[var(--ink-soft)] mb-8 max-w-xl mx-auto lg:mx-0">
+                {marca.subtitular}
+              </p>
 
-            {/* El primer botón lleva a un producto en producción, no a un
-                formulario: es lo que hace verdad el "se demuestra, no se promete". */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
-              <a
-                href={sitio.demoSalonio}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hero-cta ng-btn-primary"
-              >
-                Ver uno funcionando
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-              <button
-                onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
-                className="hero-cta ng-raised px-6 py-3 text-sm font-medium"
-              >
-                Cuéntanos tu caso
-              </button>
+              {/* El primer botón lleva a un producto en producción, no a un
+                  formulario: es lo que hace verdad el "se demuestra, no se promete". */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center">
+                <a
+                  href={sitio.demoSalonio}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hero-cta ng-btn-primary"
+                >
+                  Ver uno funcionando
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+                <button
+                  onClick={() => document.querySelector('#contacto')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="hero-cta ng-raised px-6 py-3 text-sm font-medium"
+                >
+                  Cuéntanos tu caso
+                </button>
+              </div>
             </div>
 
-            {/* Mesa de taller: las piezas se arrastran de verdad */}
-            {/* La mesa de piezas pasa a ser cristal: es lo único que flota sobre
-                el fondo del hero y por tanto el sitio natural del material.
-                Su contenido —las piezas arrastrables— sigue intacto. */}
-            <div ref={trayRef} className="toy-tray lq lq-vivo h-36 md:h-40 flex flex-wrap items-center justify-center gap-3 px-6">
-              {toyPieces.map((piece) => (
-                <span key={piece.label} className="toy-piece" data-lab={piece.lab || undefined}>
-                  <span className="toy-dot" />
-                  {piece.label}
-                </span>
-              ))}
+            <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-[19rem] sm:max-w-sm lg:max-w-none">
+              <NEnTres className="hero-n3d" />
             </div>
           </div>
+
         </NeumorfSection>
 
         {/* ========== EL COSTE DE HACERLO A MANO ==========
@@ -321,83 +364,87 @@ export default function Home() {
             hace falta. Va justo después del titular para que quien llega se
             reconozca antes de que le vendamos nada. */}
         <NeumorfSection id="coste" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-14 md:mb-20">
+            <Capitulo n={1} nombre="El problema" caida />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4 text-balance">
               {costeManual.titulo}
             </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
               {costeManual.entrada}
             </p>
           </div>
 
-          <div className="reveal grid gap-6 md:grid-cols-2">
-            {costeManual.puntos.map((punto) => (
-              <article key={punto.titulo} className="ng-card p-6">
-                <h3 className="font-display text-lg font-bold mb-2">{punto.titulo}</h3>
-                <p className="text-sm text-[var(--ink-soft)]">{punto.detalle}</p>
-              </article>
+          {/* Cuatro frases grandes, apagadas, que se encienden una a una al
+              bajar. El punto de la n baja de marca en marca por la línea que
+              las une, a la vista: ese carril va libre de texto. */}
+          <ol className="coste-lista">
+            {costeManual.puntos.map((punto, i) => (
+              <li key={punto.titulo} className="coste-punto" data-punto-grupo="">
+                {i < costeManual.puntos.length - 1 && (
+                  <span className="coste-tramo" aria-hidden="true"><span /></span>
+                )}
+                <span
+                  className="coste-marca punto-hueco"
+                  data-punto=""
+                  data-punto-camino={i > 0 ? 'linea' : undefined}
+                  aria-hidden="true"
+                />
+                <div className="coste-frase">
+                  <h3 className="coste-titulo">{punto.titulo}</h3>
+                  <p className="coste-detalle">{punto.detalle}</p>
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
 
-          <p className="reveal text-center font-display text-xl md:text-2xl font-bold tracking-tight mt-10">
-            {costeManual.cierre}
+          {/* Se enciende palabra a palabra con el scroll (ver el efecto de entradas). */}
+          <p className="cierre-coste text-center font-display text-2xl md:text-4xl font-semibold mt-20 md:mt-28 max-w-3xl mx-auto text-balance">
+            {costeManual.cierre.split(' ').map((palabra, i) => (
+              <span key={i} className="cierre-palabra">{palabra} </span>
+            ))}
           </p>
         </NeumorfSection>
 
-        {/* ========== LO QUE CONSTRUIMOS ========== */}
+        {/* ========== LO QUE CONSTRUIMOS ==========
+            Primero en tres palabras, con el punto saltando de una a otra, y
+            luego el ejemplo entero: una web con su panel, pantalla a pantalla. */}
         <NeumorfSection id="construimos" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-10 md:mb-14">
+            <Capitulo n={2} nombre="La solución" />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
               Lo que construimos
             </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Producto propio y desarrollo a medida. Lo que madura en nuestra
-              línea de I+D se incorpora a este catálogo.
-            </p>
           </div>
 
-          <div className="reveal ng-card p-6 md:p-10">
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="ng-badge text-emerald-600 dark:text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Disponible
-              </span>
-              <span className="ng-badge text-[var(--ink-soft)]">Panel de gestión</span>
-              <span className="ng-badge text-[var(--ink-soft)]">Automatización incluida</span>
-            </div>
+          <ol className="tres">
+            {queHacemos.map((q, i) => (
+              <li key={q.palabra} className="tres-item">
+                {/* En fila (de tableta para arriba) el punto salta de un
+                    hueco al siguiente. En móvil van apiladas, con la palabra
+                    en medio, y brota en cada una. */}
+                <span
+                  className="tres-hueco punto-hueco"
+                  data-punto=""
+                  data-punto-camino={i > 0 ? 'salto' : undefined}
+                  data-punto-camino-desde={i > 0 ? '768' : undefined}
+                  aria-hidden="true"
+                />
+                <span className="tres-palabra font-display">{q.palabra}</span>
+                <span className="tres-linea">{q.linea}</span>
+              </li>
+            ))}
+          </ol>
 
-            <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
-              Aplicaciones web con panel de gestión
-            </h3>
-            <p className="text-[var(--ink-soft)] max-w-2xl mb-10">
-              Para empresas y negocios locales que necesitan una presencia digital
-              profesional y autonomía completa en la gestión diaria.
-            </p>
+          <p className="text-center text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto mt-12 md:mt-16 mb-10 md:mb-14">
+            Así se ve todo junto en un restaurante inventado, Olmo: la web, su
+            panel y lo que pasa solo por detrás.
+          </p>
 
-            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
-              {productFeatures.map((feature) => (
-                <div key={feature.title} className="flex gap-3 items-start">
-                  {/* Cada tema carga su propio icono, y el cambio lo hace el CSS:
-                      así no hay parpadeo al alternar claro/oscuro ni hace falta
-                      que JavaScript decida nada. */}
-                  <span
-                    className="icono-feature"
-                    aria-hidden="true"
-                    style={{
-                      '--ico': `url(/images/iconos/${feature.icono}.webp)`,
-                      '--ico-oscuro': `url(/images/iconos-oscuro/${feature.icono}.webp)`,
-                    } as React.CSSProperties}
-                  />
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1">{feature.title}</h4>
-                    <p className="text-sm text-[var(--ink-soft)]">{feature.copy}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <ProductoEnEscena funciones={productFeatures} />
 
-            <div className="nichos-section flex flex-wrap items-center gap-3">
-              <span className="text-sm text-[var(--ink-soft)] mr-1">Soluciones especializadas por sector:</span>
+          <div className="nichos-section mt-16 md:mt-24 flex flex-col items-center gap-4 text-center">
+            <span className="text-sm text-[var(--ink-soft)]">Soluciones especializadas por sector</span>
+            <div className="flex flex-wrap justify-center gap-2.5">
               {nichos.map((nicho) => (
                 <span key={nicho} className="nicho-pill ng-raised px-4 py-2 text-sm cursor-default">
                   {nicho}
@@ -407,54 +454,68 @@ export default function Home() {
           </div>
         </NeumorfSection>
 
-        {/* ========== CÓMO TRABAJAMOS: LOS VALORES, CON SU PRUEBA ==========
-            Va antes de Proyectos a propósito: aquí se promete y justo debajo
-            está Salonio para confirmarlo. Un valor sin prueba es un eslogan. */}
-        <NeumorfSection id="compromisos" className="max-w-6xl seccion-texturada">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              Cómo trabajamos
-            </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Cinco compromisos, cada uno con lo que lo demuestra al lado.
-            </p>
-          </div>
-
-          <div className="reveal grid gap-6 md:grid-cols-2">
-            {marca.valores.map((valor) => (
-              <article key={valor.titulo} className="ng-card p-6 flex flex-col gap-2">
-                <h3 className="font-display text-lg font-bold">{valor.titulo}</h3>
-                <p className="font-mono text-xs text-emerald-600 dark:text-emerald-400">
-                  {valor.prueba}
-                </p>
-              </article>
-            ))}
-          </div>
-        </NeumorfSection>
-
         {/* ========== PROYECTOS ==========
-            Selector, no pila. Iban uno debajo de otro y cada encargo nuevo
-            alargaba la home; ahora las placas enseñan el catálogo de trabajos
-            de un vistazo y el panel pinta el elegido. El contenido está en
+            Justo después del ejemplo, a propósito: Olmo es inventado y aquí
+            están los de verdad. Es el momento en que quien duda quiere pruebas.
+            El selector enseña el catálogo de un vistazo y el panel pinta el
+            elegido; el punto toma el color de cada proyecto. Los datos están en
             `lib/content/proyectos.ts`: añadir uno es escribir un objeto. */}
         <NeumorfSection id="proyectos" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={3} nombre="Casos reales" />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
               Proyectos
             </h2>
-            <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
-              Dos en producción, de dos clases distintas: uno es nuestro y el
-              otro es de un cliente. Los dos con gente usándolos hoy.
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
+              Olmo es un ejemplo. Estos no: están en producción y con gente
+              usándolos hoy. Uno es nuestro y el otro, de un cliente.
             </p>
           </div>
 
           <Proyectos />
         </NeumorfSection>
 
+        {/* ========== CÓMO TRABAJAMOS: LOS VALORES, CON SU PRUEBA ========== */}
+        <NeumorfSection id="compromisos" className="max-w-6xl seccion-texturada">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={4} nombre="Compromisos" />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+              Cómo trabajamos
+            </h2>
+            <p className="text-[var(--ink-soft)] md:text-lg max-w-2xl mx-auto">
+              Cinco compromisos, y al lado de cada uno, lo que lo demuestra.
+            </p>
+          </div>
+
+          {/* Las tarjetas se apilan al bajar: cada una se queda arriba y la
+              siguiente sube por encima. */}
+          <ol className="pila">
+            {marca.valores.map((valor, i) => (
+              <li
+                key={valor.titulo}
+                className="pila-carta ng-card"
+                style={{ '--i': i } as React.CSSProperties}
+              >
+                <span className="pila-num">
+                  {dosCifras(i + 1)}
+                  <span>/ {dosCifras(marca.valores.length)}</span>
+                </span>
+                <h3 className="pila-titulo">{valor.titulo}</h3>
+                <div className="pila-prueba">
+                  <span className="pila-etiqueta">La prueba</span>
+                  <p>{valor.prueba}</p>
+                </div>
+                <span className="pila-velo" aria-hidden="true" />
+              </li>
+            ))}
+          </ol>
+        </NeumorfSection>
+
         {/* ========== EL PROCESO ========== */}
         <NeumorfSection id="proceso" className="max-w-6xl">
-          <div className="reveal text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">
+          <div className="reveal text-center mb-12 md:mb-16">
+            <Capitulo n={5} nombre="El proceso" />
+            <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
               Del primer contacto a la entrega
             </h2>
             <p className="text-[var(--ink-soft)] max-w-2xl mx-auto">
@@ -463,18 +524,31 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="reveal grid gap-6 md:grid-cols-3">
+          {/* El recorrido. Una vía vertical une los tres pasos y el punto de la
+              n baja por ella al hacer scroll, encendiendo cada paso al pasar. */}
+          <div className="recorrido max-w-3xl mx-auto">
+            <div className="recorrido-via" data-punto="via" data-punto-tam="14" aria-hidden="true">
+              <span className="recorrido-luz" />
+            </div>
+            <ol className="recorrido-lista">
             {processSteps.map((step) => (
-              <div key={step.day} className="ng-card p-6">
-                <span className="step-key mb-4">{step.day}</span>
-                <h3 className="font-display text-lg font-bold mt-4 mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-[var(--ink-soft)]">{step.copy}</p>
-              </div>
+              <li key={step.day} className="paso">
+                <span className="paso-nodo step-key" data-punto-tapa="" aria-hidden="true">
+                  {step.day.padStart(2, '0')}
+                </span>
+                <div className="paso-tarjeta ng-card p-6 md:p-7">
+                  <p className="font-mono text-[0.68rem] tracking-[0.2em] uppercase text-[var(--ink-soft)] mb-2">
+                    Paso {step.day} de {processSteps.length}
+                  </p>
+                  <h3 className="font-display text-xl md:text-2xl font-semibold mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm md:text-base text-[var(--ink-soft)]">{step.copy}</p>
+                </div>
+              </li>
             ))}
+            </ol>
           </div>
-
         </NeumorfSection>
 
         {/* ========== EL LABORATORIO ==========
@@ -482,11 +556,8 @@ export default function Home() {
             llegar, así que a partir de este punto el contenido técnico no le
             quita el sitio a nada. */}
         <NeumorfSection id="laboratorio" className="max-w-6xl">
-          {/* Era la sección más larga siendo la menos importante: 152 palabras,
-              tres tarjetas y un bloque entero sobre metodología interna. Queda
-              en una línea y las etiquetas. Quien quiera detalle, va a GitHub. */}
           <div className="reveal text-center max-w-2xl mx-auto">
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">
+            <h2 className="font-display text-2xl md:text-3xl font-semibold mb-3">
               El laboratorio
             </h2>
             <p className="text-[var(--ink-soft)] mb-6">
@@ -502,13 +573,23 @@ export default function Home() {
           </div>
         </NeumorfSection>
 
-        {/* ========== CONTACTO ========== */}
-        <div ref={contactRef} id="contacto">
+        {/* ========== CONTACTO ==========
+            El recorrido acaba aquí: el punto vuelve a la n y el logo queda
+            completo junto al formulario. */}
+        <div id="contacto">
           <NeumorfSection className="pb-24">
             <div className="reveal grid gap-12 md:grid-cols-2 items-start">
               <div className="space-y-6">
+                <div className="casa" aria-hidden="true">
+                  <svg viewBox={N_FORMA.vista} className="casa-n">
+                    <path d={N_FORMA.n} />
+                  </svg>
+                  <span className="casa-hueco punto-hueco" data-punto="" />
+                </div>
                 <div>
-                  <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-4">
+                  {/* Sin hueco para el punto: aquí el final es la n de arriba. */}
+                  <Capitulo n={6} nombre="Hablemos" centrado={false} ancla={false} />
+                  <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
                     Hablemos de tu proyecto
                   </h2>
                   <p className="text-[var(--ink-soft)] leading-relaxed">
@@ -528,8 +609,8 @@ export default function Home() {
                     'Si no te encajamos, te lo decimos',
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-[var(--ink-soft)]">
-                      <span className="w-5 h-5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="contacto-marca" aria-hidden="true">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       </span>
@@ -548,19 +629,11 @@ export default function Home() {
 
         {/* ========== FOOTER ========== */}
         <footer className="border-t border-[var(--edge-border)]">
-          <NeumorfSection className="py-8 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
-            {/* Wordmark: neumor▪ / STUDIO */}
-            <div className="flex flex-col items-center md:items-start gap-1">
-              <span className="font-display text-2xl font-bold tracking-tight leading-none text-[var(--foreground)]">
-                neumor
-                <span
-                  className="inline-block w-[0.16em] h-[0.16em] ml-[0.08em] rounded-[1px] bg-[var(--accent)]"
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="text-[0.6rem] font-light uppercase tracking-[0.45em] ml-[0.2em]">
-                Studio
-              </span>
+          <NeumorfSection className="!py-8 md:!py-10 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[var(--ink-soft)]">
+            {/* La misma firma que la barra: la n y el nombre. */}
+            <div className="flex items-center gap-2.5 text-xl font-semibold tracking-[-0.035em] text-[var(--foreground)]">
+              <LogoN className="w-7 h-7" />
+              NeumorStudio
             </div>
 
             <span>&copy; {new Date().getFullYear()} NeumorStudio — Desarrollo de software</span>
@@ -585,17 +658,6 @@ export default function Home() {
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
-                </svg>
-              </a>
-              <a
-                href="https://x.com/neumorstudio"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ng-raised w-10 h-10 !p-0 flex items-center justify-center"
-                aria-label="X"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
             </div>
