@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./olmo.css";
 import { ThemeProvider } from "@/components/theme/ThemeContext";
+import { sitio } from "@/lib/content/marca";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,7 +68,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   // Sin metadataBase, Next resuelve las imágenes sociales contra localhost:3000
   // y la previsualización al compartir el enlace sale rota en producción.
-  metadataBase: new URL('https://neumorstudio.com'),
+  metadataBase: new URL(sitio.url),
   title: "NeumorStudio | Software a medida para negocios",
   description:
     "Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación de clientes y atención automática. Aplicaciones a medida con su panel, entregadas funcionando.",
@@ -95,7 +96,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    url: 'https://neumorstudio.com',
+    url: sitio.url,
     siteName: 'NeumorStudio',
     title: 'NeumorStudio | Software a medida para negocios',
     description: 'Montamos el software que tu negocio todavía hace a mano: reservas, gestión, captación y atención automática.',
