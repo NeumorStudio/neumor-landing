@@ -353,6 +353,7 @@ export default function Home() {
             </div>
 
             <div className="hero-logo order-first lg:order-none mx-auto w-full max-w-[19rem] sm:max-w-sm lg:max-w-none">
+              <div className="hero-luces" aria-hidden="true" />
               <NEnTres className="hero-n3d" />
             </div>
           </div>

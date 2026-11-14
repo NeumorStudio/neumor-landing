@@ -5,6 +5,8 @@ import Image from 'next/image'
 import gsap from 'gsap'
 import type * as THREE from 'three'
 import { puntoHero } from './punto-estado'
+import { N_COLOR } from './n-color'
+import { EVENTO_INTRO_FIN, introActiva } from './Intro'
 
 /**
  * La n de la portada en 3D de verdad: el mismo dibujo del logo, con grosor,
@@ -38,16 +40,54 @@ const HOLGURA = 0.14
 const AMPLIA = 1 + 2 * HOLGURA
 const ANGULO = (2 * Math.atan(AMPLIA * Math.tan((22 * Math.PI) / 360)) * 180) / Math.PI
 
-// La bola va en tinta, como el punto del logo: carbón en claro y porcelana en
-// oscuro. En oscuro lleva algo de luz propia para que no se quede gris.
+// La n va de ámbar a azul (n-color.ts). Aquí, en unidades de la n: centrada y
+// con el eje y hacia arriba.
+const DESDE = { x: N_COLOR.desde.x - 50, y: 50 - N_COLOR.desde.y }
+const HACIA = { x: N_COLOR.hacia.x - 50, y: 50 - N_COLOR.hacia.y }
+
+// La bola va en ámbar, como el punto que guía la página (`--accent-fill`):
+// en claro un tono más oscuro, igual que en el CSS.
 const TEMAS = {
-  claro: { n: '#f1efea', bola: '#17181f', brillo: '#000000', sombra: 0.22, cielo: '#ffffff', suelo: '#c9c1b4', hemi: 2.1, luz: 2.3, relleno: 0.35, contra: 0 },
-  oscuro: { n: '#2f3039', bola: '#ece9e3', brillo: '#8a8780', sombra: 0.6, cielo: '#b4b8cc', suelo: '#07080b', hemi: 0.95, luz: 1.7, relleno: 0.25, contra: 1.1 },
+  claro: { bola: '#eba729', brillo: '#000000', sombra: 0.2, cielo: '#ffffff', suelo: '#cfc8bc', hemi: 1.55, luz: 2.0, relleno: 0.35, contra: 0 },
+  oscuro: { bola: '#f2b33d', brillo: '#1e1300', sombra: 0.6, cielo: '#dde1ef', suelo: '#14151c', hemi: 1.55, luz: 2.2, relleno: 0.35, contra: 1.2 },
 }
 
 const limita = (v: number) => Math.min(1, Math.max(0, v))
 const sale = (t: number) => 1 - Math.pow(1 - t, 3)
 const cae = (t: number) => t * t
+
+/**
+ * El color de la n va en una textura de una fila con el degradado, y cada
+ * vértice dice en qué punto de esa fila cae. No vale pintar los vértices:
+ * la cara de la n son triángulos largos que van de una pata a la otra, y el
+ * color se mezclaría de ámbar a azul sin pasar por la porcelana del medio.
+ * La posición en el degradado sí se reparte bien por el triángulo, y la
+ * textura pone cada color en su sitio.
+ */
+function degradado(T: typeof THREE) {
+  const lienzo = document.createElement('canvas')
+  lienzo.width = 512
+  lienzo.height = 1
+  const ctx = lienzo.getContext('2d')!
+  const g = ctx.createLinearGradient(0, 0, lienzo.width, 0)
+  for (const [t, c] of N_COLOR.paradas) g.addColorStop(t, c)
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, lienzo.width, 1)
+  const textura = new T.CanvasTexture(lienzo)
+  textura.colorSpace = T.SRGBColorSpace
+  return textura
+}
+
+/** Dónde cae cada vértice de la n en el degradado, como coordenada de textura. */
+function enDegradado(T: typeof THREE, pos: THREE.BufferAttribute) {
+  const dx = HACIA.x - DESDE.x, dy = HACIA.y - DESDE.y, d2 = dx * dx + dy * dy
+  const uv = new Float32Array(pos.count * 2)
+  for (let i = 0; i < pos.count; i++) {
+    uv[i * 2] = limita(((pos.getX(i) - DESDE.x) * dx + (pos.getY(i) - DESDE.y) * dy) / d2)
+    uv[i * 2 + 1] = 0.5
+  }
+  return new T.BufferAttribute(uv, 2)
+}
 
 export function NEnTres({ className = '' }: { className?: string }) {
   const caja = useRef<HTMLDivElement>(null)
@@ -62,10 +102,13 @@ export function NEnTres({ className = '' }: { className?: string }) {
     let vivo = true
     let limpiar = () => {}
 
-    import('three').then((T) => {
+    const arrancar = () => import('three').then((T) => {
       if (!vivo) return
 
       const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+      // Comprobar los shaders obliga a esperar a que compilen. En producción
+      // no hace falta.
+      renderer.debug.checkShaderErrors = process.env.NODE_ENV !== 'production'
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
       renderer.outputColorSpace = T.SRGBColorSpace
       renderer.toneMapping = T.NoToneMapping
@@ -100,11 +143,17 @@ export function NEnTres({ className = '' }: { className?: string }) {
         depth: FONDO, bevelEnabled: true, bevelThickness: BISEL.alto, bevelSize: b, bevelSegments: 8, curveSegments: 72,
       })
       geoN.translate(0, 0, -FONDO / 2)
+      geoN.setAttribute('uv', enDegradado(T, geoN.attributes.position as THREE.BufferAttribute))
       const geoBola = new T.SphereGeometry(N.punto.r, 64, 48)
 
-      const matN = new T.MeshStandardMaterial({ roughness: 0.62, metalness: 0 })
-      // Mate: un punto de tinta, no una bola de billar.
-      const matBola = new T.MeshStandardMaterial({ roughness: 0.62, metalness: 0 })
+      // Esmalte: el color va en la pieza y una capa fina de barniz le da el
+      // brillo del material. Nada translúcido ni con halo.
+      const colorN = degradado(T)
+      const matN = new T.MeshPhysicalMaterial({
+        map: colorN, roughness: 0.4, metalness: 0, clearcoat: 0.55, clearcoatRoughness: 0.3,
+      })
+      // Casi mate: un punto, no una bola de billar.
+      const matBola = new T.MeshStandardMaterial({ roughness: 0.48, metalness: 0 })
       const n = new T.Mesh(geoN, matN)
       n.castShadow = true
       n.receiveShadow = true
@@ -125,7 +174,8 @@ export function NEnTres({ className = '' }: { className?: string }) {
       escena.add(muro)
 
       const hemi = new T.HemisphereLight('#ffffff', '#cccccc', 1)
-      const luz = new T.DirectionalLight('#ffffff', 2)
+      // La luz principal, apenas cálida; la de relleno y la de detrás, frías.
+      const luz = new T.DirectionalLight('#fff6ea', 2)
       luz.position.set(-55, 70, 95)
       luz.castShadow = true
       luz.shadow.mapSize.set(2048, 2048)
@@ -134,16 +184,15 @@ export function NEnTres({ className = '' }: { className?: string }) {
       luz.shadow.radius = 16
       luz.shadow.blurSamples = 24
       luz.shadow.bias = -0.0005
-      const relleno = new T.DirectionalLight('#ffffff', 0.3)
+      const relleno = new T.DirectionalLight('#e6ecff', 0.3)
       relleno.position.set(70, -15, 80)
-      // Una luz por detrás que dibuja el canto en el tema oscuro.
-      const contra = new T.DirectionalLight('#c3c8dc', 0)
+      // Una luz por detrás que dibuja el canto en el tema oscuro, en azul.
+      const contra = new T.DirectionalLight('#a9bdff', 0)
       contra.position.set(25, 70, -60)
       escena.add(hemi, luz, relleno, contra)
 
       const aplicarTema = () => {
         const t = TEMAS[document.documentElement.classList.contains('dark') ? 'oscuro' : 'claro']
-        matN.color.set(t.n)
         matBola.color.set(t.bola)
         matBola.emissive.set(t.brillo)
         matMuro.opacity = t.sombra
@@ -241,7 +290,11 @@ export function NEnTres({ className = '' }: { className?: string }) {
           }
         }
       }
-      gsap.ticker.add(bucle, false, true)
+      // Los shaders se compilan sin parar la página, donde el navegador lo
+      // permite, y la escena empieza a dibujarse cuando están listos.
+      renderer.compileAsync(escena, camara).catch(() => {}).then(() => {
+        if (vivo) gsap.ticker.add(bucle, false, true)
+      })
 
       limpiar = () => {
         gsap.ticker.remove(bucle)
@@ -252,6 +305,7 @@ export function NEnTres({ className = '' }: { className?: string }) {
         geoN.dispose()
         geoBola.dispose()
         matN.dispose()
+        colorN.dispose()
         matBola.dispose()
         matMuro.dispose()
         renderer.dispose()
@@ -261,17 +315,37 @@ export function NEnTres({ className = '' }: { className?: string }) {
       }
     })
 
+    // Con pantalla de carga, el 3D espera a que la web se haya abierto:
+    // montarlo ocupa el procesador cerca de medio segundo y la apertura daría
+    // un salto. Mientras tanto se ve la foto de esta misma n.
+    let espera = 0
+    const ya = () => {
+      window.clearTimeout(espera)
+      window.removeEventListener(EVENTO_INTRO_FIN, ya)
+      if (vivo) arrancar()
+    }
+    if (introActiva()) {
+      window.addEventListener(EVENTO_INTRO_FIN, ya)
+      espera = window.setTimeout(ya, 6000)
+    } else {
+      arrancar()
+    }
+
     return () => {
       vivo = false
+      window.clearTimeout(espera)
+      window.removeEventListener(EVENTO_INTRO_FIN, ya)
       limpiar()
     }
   }, [])
 
   return (
     <div ref={caja} className={`n3d ${className}`}>
-      {/* Lo que se ve mientras carga Three.js, o en su lugar. Una por tema. */}
+      {/* Lo que se ve mientras carga Three.js, o en su lugar. Una por tema.
+          Son fotos de esta misma escena en reposo, así que el paso de la
+          imagen al 3D no se nota. */}
       <Image
-        src="/marca/n-relieve-oscuro-sin-fondo.webp"
+        src="/marca/n-color-oscuro.webp"
         alt=""
         width={1400}
         height={1400}
@@ -280,7 +354,7 @@ export function NEnTres({ className = '' }: { className?: string }) {
         className="n3d-imagen hero-n-oscuro"
       />
       <Image
-        src="/marca/n-relieve-claro-sin-fondo.webp"
+        src="/marca/n-color-claro.webp"
         alt=""
         width={1400}
         height={1400}
