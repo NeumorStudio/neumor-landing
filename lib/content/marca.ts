@@ -103,6 +103,8 @@ export const contacto = {
 } as const;
 
 export const sitio = {
-  url: "https://neumorstudio.com",
+  // La web vive en www: la raíz redirige ahí y es la dirección dada de alta en
+  // Search Console. De aquí salen el sitemap, robots.txt y las imágenes sociales.
+  url: "https://www.neumorstudio.com",
   demoSalonio: "https://reservas.neumorstudio.com",
 } as const;
