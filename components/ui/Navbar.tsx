@@ -134,7 +134,7 @@ export function Navbar() {
         <Link
           href="/"
           aria-label="NeumorStudio"
-          className="ng-wordmark nav-item !py-0.5 text-lg md:text-xl font-semibold tracking-[-0.035em] relative z-10"
+          className="ng-wordmark nav-item !py-2 text-lg md:text-xl font-semibold tracking-[-0.035em] relative z-10"
         >
           {/* Símbolo: la n, a una tinta y del color del texto. El nombre va en Geist */}
           <LogoN className="w-8 h-8 mr-1.5" />
