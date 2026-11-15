@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
-import { CARBON, MAESTRO, PEQUENA, PORCELANA, arcoD, caja, centroX, encaja, n, nD } from "./forma.mjs";
+import { CARBON, MAESTRO, PEQUENA, PORCELANA, arcoD, caja, centroX, encaja, n, nD, punto } from "./forma.mjs";
 import { acabado } from "./motor.mjs";
 
 const DIR = "public/marca";
@@ -78,8 +78,9 @@ function ico(imagenes) {
   return Buffer.concat([cabecera, ...entradas, ...imagenes.map((i) => i.datos)]);
 }
 
-// Favicons: planos y con la n pequeña, porcelana sobre carbón.
-const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="${RADIO}" fill="${CARBON}"/>${encaja(PEQUENA, N_FAVICON, n(PEQUENA, PORCELANA))}</svg>`;
+// El punto lleva el mismo ámbar que el logo de la barra en tema oscuro.
+const nFavicon = `<path d="${nD(PEQUENA)}" fill="${PORCELANA}"/>${punto(PEQUENA, "#F2B33D")}`;
+const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="${RADIO}" fill="${CARBON}"/>${encaja(PEQUENA, N_FAVICON, nFavicon)}</svg>`;
 const pequenos = [];
 for (const lado of [16, 32, 48]) {
   const datos = await imagen(favicon, lado);
@@ -88,6 +89,7 @@ for (const lado of [16, 32, 48]) {
   if (lado < 48) fs.writeFileSync(path.join(DIR_WEB, `favicon-${lado}x${lado}.png`), datos);
 }
 fs.writeFileSync("app/favicon.ico", ico(pequenos));
+fs.writeFileSync(path.join(DIR_WEB, "favicon-96x96.png"), await imagen(favicon, 96));
 
 // Iconos de app, avatares y firma de correo: planos y a sangre. Apple, Google y
 // las PWA redondean por su cuenta, y App Store no admite transparencia.

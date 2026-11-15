@@ -11,7 +11,8 @@
 // v5 (07-11-2026): vuelve el NS, en su forma líquida.
 // v6 (09-11-2026): el logo pasa a ser la n del punto dentro.
 // v7 (10-11-2026): la n con patas rectas suaves y el punto sin color.
-const CACHE_NAME = 'neumorstudio-v7'
+// v8: el favicon recupera el punto ámbar.
+const CACHE_NAME = 'neumorstudio-v8'
 const OFFLINE_URL = '/'
 
 // Assets a pre-cachear
