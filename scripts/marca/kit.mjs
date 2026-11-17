@@ -11,6 +11,8 @@ const DIR_WEB = "public/icons";
 const BLANCO = "#FFFFFF";
 const RADIO = 22; // Esquinas de los iconos sueltos, sobre 100
 const N_FAVICON = 0.84; // A 16 px el aire le quita lectura
+// El ámbar del punto: el mismo que el logo de la barra en tema oscuro (--accent-fill).
+const AMBAR = "#F2B33D";
 
 // Lo que ya no forma parte del kit: el cristal y el blanco con brillo.
 for (const viejo of ["n-cristal.webp", "n-cristal-sin-fondo.webp", "n-cristal-social.jpg", "n-icono-cristal.svg", "n-blanco.webp", "n-marca-una-tinta.svg"])
@@ -78,8 +80,7 @@ function ico(imagenes) {
   return Buffer.concat([cabecera, ...entradas, ...imagenes.map((i) => i.datos)]);
 }
 
-// El punto lleva el mismo ámbar que el logo de la barra en tema oscuro.
-const nFavicon = `<path d="${nD(PEQUENA)}" fill="${PORCELANA}"/>${punto(PEQUENA, "#F2B33D")}`;
+const nFavicon = `<path d="${nD(PEQUENA)}" fill="${PORCELANA}"/>${punto(PEQUENA, AMBAR)}`;
 const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="${RADIO}" fill="${CARBON}"/>${encaja(PEQUENA, N_FAVICON, nFavicon)}</svg>`;
 const pequenos = [];
 for (const lado of [16, 32, 48]) {
@@ -92,8 +93,10 @@ fs.writeFileSync("app/favicon.ico", ico(pequenos));
 fs.writeFileSync(path.join(DIR_WEB, "favicon-96x96.png"), await imagen(favicon, 96));
 
 // Iconos de app, avatares y firma de correo: planos y a sangre. Apple, Google y
-// las PWA redondean por su cuenta, y App Store no admite transparencia.
-const cuadrado = acabado("plano");
+// las PWA redondean por su cuenta, y App Store no admite transparencia. Llevan
+// el punto ámbar, como el favicon: Google puede usar cualquiera de ellos como
+// icono de la web en sus resultados.
+const cuadrado = acabado("plano", { colorPunto: AMBAR });
 for (const lado of [180, 192, 512, 1024]) await guarda(`icono-${lado}.png`, cuadrado, lado, { opaco: true });
 for (const lado of [72, 96, 128, 144, 152, 192, 384, 512])
   fs.writeFileSync(path.join(DIR_WEB, `icon-${lado}x${lado}.png`), await imagen(cuadrado, lado, { opaco: true }));

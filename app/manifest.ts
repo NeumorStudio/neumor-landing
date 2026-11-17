@@ -1,10 +1,12 @@
 import type { MetadataRoute } from 'next'
+import { marca } from '@/lib/content/marca'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'NeumorStudio - Diseño que conecta',
+    name: `${marca.nombre} | Software a medida para negocios`,
     short_name: 'NeumorStudio',
-    description: 'Webs con panel propio, leads centralizados y automatizaciones. Diseño neumórfico profesional.',
+    // El mismo texto que la portada: sale de lib/content/marca.ts.
+    description: marca.subtitular,
     start_url: '/',
     display: 'standalone',
     background_color: '#17181f',
