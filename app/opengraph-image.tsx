@@ -19,8 +19,10 @@ export const contentType = 'image/png'
 const logo = readFileSync(join(process.cwd(), 'public/marca/icono-192.png'))
 const logoSrc = `data:image/png;base64,${logo.toString('base64')}`
 
-// La n en relieve, a la derecha. Es JPEG porque este generador no lee WebP.
-const n = readFileSync(join(process.cwd(), 'public/marca/n-social.jpg'))
+// La n de la portada, de ámbar a azul, a la derecha. Es la misma imagen que se
+// ve antes de que cargue la n en 3D (n-color-oscuro.webp), sobre carbón y en
+// JPEG porque este generador no lee WebP.
+const n = readFileSync(join(process.cwd(), 'public/marca/n-social-color.jpg'))
 const nSrc = `data:image/jpeg;base64,${n.toString('base64')}`
 
 export default function OpenGraphImage() {

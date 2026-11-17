@@ -2,7 +2,7 @@
 // Son SVG con filtros y se rasterizan con sharp, así que salen igual en
 // cualquier máquina. Sin brillos, sin cristal y sin luces de color: la n es
 // material, como una tecla, y el relieve solo se usa en piezas grandes.
-import { CARBON, MAESTRO, PORCELANA, n } from "./forma.mjs";
+import { CARBON, MAESTRO, PORCELANA, n, nD, punto } from "./forma.mjs";
 
 const U = "userSpaceOnUse";
 
@@ -39,12 +39,17 @@ const FILTROS = {
  * - margen: unidades que se añaden alrededor de la caja de 100, para que la
  *   sombra del relieve no se corte al quitar el fondo.
  * - radio: esquinas del fondo, para iconos sueltos.
+ * - colorPunto: el punto en otro color que la n (el ámbar de la marca). Sin él,
+ *   la n y el punto van a una tinta.
  */
-export function acabado(estilo, { fondo = true, margen = 0, radio = 0, f = MAESTRO } = {}) {
+export function acabado(estilo, { fondo = true, margen = 0, radio = 0, f = MAESTRO, colorPunto = null } = {}) {
   const a = ACABADOS[estilo];
   if (!a) throw new Error(`Acabado desconocido: ${estilo}`);
   const defs = a.filtro ? `<defs>${FILTROS[a.filtro]}</defs>` : "";
-  const cuerpo = n(f, a.tinta, a.filtro ? ` filter="url(#${a.filtro})"` : "");
+  const extra = a.filtro ? ` filter="url(#${a.filtro})"` : "";
+  const cuerpo = colorPunto
+    ? `<path d="${nD(f)}" fill="${a.tinta}"${extra}/>${punto(f, colorPunto, extra)}`
+    : n(f, a.tinta, extra);
   const color = fondo === true ? a.fondo : fondo;
   const lado = 100 + 2 * margen;
   const capaFondo = color

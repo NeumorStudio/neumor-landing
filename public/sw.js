@@ -12,7 +12,8 @@
 // v6 (09-11-2026): el logo pasa a ser la n del punto dentro.
 // v7 (10-11-2026): la n con patas rectas suaves y el punto sin color.
 // v8: el favicon recupera el punto ámbar.
-const CACHE_NAME = 'neumorstudio-v8'
+// v9 (17-11-2026): los iconos de app (180, 192 y 512) llevan también el punto ámbar.
+const CACHE_NAME = 'neumorstudio-v9'
 const OFFLINE_URL = '/'
 
 // Assets a pre-cachear
